@@ -287,7 +287,8 @@ struct redisCommand redisCommandTable[] = {
     {"pfcount",pfcountCommand,-2,"r",0,NULL,1,1,1,0,0},
     {"pfmerge",pfmergeCommand,-2,"wm",0,NULL,1,-1,1,0,0},
     {"pfdebug",pfdebugCommand,-3,"w",0,NULL,0,0,0,0,0},
-    {"latency",latencyCommand,-2,"arslt",0,NULL,0,0,0,0,0}
+    {"latency",latencyCommand,-2,"arslt",0,NULL,0,0,0,0,0},
+    {"rand",randCommand,2,"rRl",0,NULL,0,0,0,0,0}
 };
 
 struct evictionPoolEntry *evictionPoolAlloc(void);
@@ -3729,6 +3730,14 @@ int redisIsSupervised(int mode) {
     return 0;
 }
 
+void randCommand(redisClient *c) {
+    long max;
+ 
+    if (getLongFromObjectOrReply(c,c->argv[1],&max,NULL) != REDIS_OK)
+        return;
+ 
+    addReplyLongLong(c,random() % max);
+}
 
 int main(int argc, char **argv) {
     struct timeval tv;

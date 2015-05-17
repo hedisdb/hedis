@@ -157,6 +157,8 @@ void psetexCommand(redisClient *c) {
 int getGenericCommand(redisClient *c) {
     robj *o;
 
+    redisLog(LOG_DEBUG, "show get parameter: %s", c->argv[1]->ptr);
+
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL)
         return REDIS_OK;
 

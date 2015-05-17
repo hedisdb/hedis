@@ -1593,5 +1593,8 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 #endif
 
 /* HBase command */
-int compile_regex(regex_t * r, const char * regex_text);
+// dbname://tablename:rowkey
+#define HBASE_COMMAND_PATTERN "(\\w+)://(\\w+):(\\w+)"
+
+int compile_regex(regex_t * r);
 int match_regex(regex_t * r, const char * to_match);

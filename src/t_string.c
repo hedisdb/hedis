@@ -157,12 +157,11 @@ void psetexCommand(redisClient *c) {
 int getGenericCommand(redisClient *c) {
     robj *o;
     regex_t r;
-    const char * regex_text = "(\\w+)://(\\w+):(\\w+)";
     const char * find_text = c->argv[1]->ptr;
 
     redisLog(LOG_DEBUG, "show get parameter: %s", find_text);
 
-    compile_regex(&r, regex_text);
+    compile_regex(&r);
     match_regex(&r, find_text);
 
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL)

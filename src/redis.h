@@ -47,6 +47,7 @@
 #include <netinet/in.h>
 #include <lua.h>
 #include <signal.h>
+#include <regex.h>
 
 typedef long long mstime_t; /* millisecond time type. */
 
@@ -1590,3 +1591,7 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
     printf("-- MARK %s:%d --\n", __FILE__, __LINE__)
 
 #endif
+
+/* HBase command */
+int compile_regex(regex_t * r, const char * regex_text);
+int match_regex(regex_t * r, const char * to_match);

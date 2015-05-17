@@ -29,7 +29,6 @@
 
 #include "redis.h"
 #include <math.h> /* isnan(), isinf() */
-#include <regex.h>
 
 /*-----------------------------------------------------------------------------
  * String Commands
@@ -64,7 +63,6 @@ static int checkStringLength(redisClient *c, long long size) {
 #define REDIS_SET_XX (1<<1)     /* Set if key exists. */
 #define REDIS_SET_EX (1<<2)     /* Set if time in seconds is given */
 #define REDIS_SET_PX (1<<3)     /* Set if time in ms in given */
-#define MAX_ERROR_MSG 0x1000
 
 void setGenericCommand(redisClient *c, int flags, robj *key, robj *val, robj *expire, int unit, robj *ok_reply, robj *abort_reply) {
     long long milliseconds = 0; /* initialized to avoid any harmness warning */
@@ -476,56 +474,4 @@ void strlenCommand(redisClient *c) {
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.czero)) == NULL ||
         checkType(c,o,REDIS_STRING)) return;
     addReplyLongLong(c,stringObjectLen(o));
-}
-
-int compile_regex (regex_t * r, const char * regex_text)
-{
-  int status = regcomp (r, regex_text, REG_EXTENDED|REG_NEWLINE);
-  if (status != 0) {
-    char error_message[MAX_ERROR_MSG];
-    regerror (status, r, error_message, MAX_ERROR_MSG);
-    printf ("Regex error compiling '%s': %s\n",
-        regex_text, error_message);
-    return 1;
-  }
-  return 0;
-}
-
-int match_regex (regex_t * r, const char * to_match)
-{
-  /* "P" is a pointer into the string which points to the end of the
-   *        previous match. */
-  const char * p = to_match;
-  /* "N_matches" is the maximum number of matches allowed. */
-  const int n_matches = 10; 
-  /* "M" contains the matches found. */
-  regmatch_t m[n_matches];
-
-  while (1) {
-    int i = 0;
-    int nomatch = regexec (r, p, n_matches, m, 0);
-    if (nomatch) {
-      printf ("No more matches.\n");
-      return nomatch;
-    }
-    for (i = 0; i < n_matches; i++) {
-      int start;
-      int finish;
-      if (m[i].rm_so == -1) {
-        break;
-      }
-      start = m[i].rm_so + (p - to_match);
-      finish = m[i].rm_eo + (p - to_match);
-      if (i == 0) {
-        printf ("$& is ");
-      }
-      else {
-        printf ("$%d is ", i);
-      }
-      printf ("'%.*s' (bytes %d:%d)\n", (finish - start),
-          to_match + start, start, finish);
-    }
-    p += m[0].rm_eo;
-  }
-  return 0;
 }

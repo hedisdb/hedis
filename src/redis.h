@@ -1593,4 +1593,4 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 #endif
 
 /* HBase command */
-char **match_regex(const char * to_match);
+char **parseHBaseProtocol(const char * to_match);

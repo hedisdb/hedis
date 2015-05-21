@@ -16,8 +16,10 @@ int compile_regex (regex_t * r)
   return 0;
 }
 
-int match_regex (regex_t * r, const char * to_match)
+char **match_regex (regex_t * r, const char * to_match)
 {
+  char **str = malloc(sizeof(char *) * 3);
+
   /* "P" is a pointer into the string which points to the end of the
    *        previous match. */
   const char * p = to_match;
@@ -26,26 +28,31 @@ int match_regex (regex_t * r, const char * to_match)
   /* "M" contains the matches found. */
   regmatch_t m[n_matches];
 
-  while (1) {
-    int i = 0;
-    int nomatch = regexec (r, p, n_matches, m, 0);
-    if (nomatch) {
-      printf ("No more matches.\n");
-      return nomatch;
-    }
-    for (i = 0; i < n_matches; i++) {
-      int start;
-      int finish;
-      if (m[i].rm_so == -1) {
-        break;
-      }
-      start = m[i].rm_so + (p - to_match);
-      finish = m[i].rm_eo + (p - to_match);
-      if (i != 0) {
-        printf ("'%.*s'\n", (finish - start), to_match + start);
-      }
-    }
-    p += m[0].rm_eo;
+  int i = 0;
+  int nomatch = regexec (r, p, n_matches, m, 0);
+
+  if (nomatch) {
+    printf("No more matches.\n");
+    return NULL;
   }
-  return 0;
+
+  for (i = 0; i < n_matches; i++) {
+    int start;
+    int finish;
+    if (m[i].rm_so == -1) {
+      break;
+    }
+    start = m[i].rm_so + (p - to_match);
+    finish = m[i].rm_eo + (p - to_match);
+    if (i != 0) {
+      int size = finish - start;
+
+      str[i - 1] = malloc(sizeof(char) * size);
+
+      sprintf(str[i - 1], "'%.*s'", size, to_match + start);
+    }
+  }
+  p += m[0].rm_eo;
+
+  return str;
 }

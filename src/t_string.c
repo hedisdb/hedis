@@ -162,7 +162,12 @@ int getGenericCommand(redisClient *c) {
     redisLog(LOG_DEBUG, "show get parameter: %s", find_text);
 
     compile_regex(&r);
-    match_regex(&r, find_text);
+
+    char **str = match_regex(&r, find_text);
+
+    redisLog(LOG_DEBUG, "show get 1: %s", str[0]);
+    redisLog(LOG_DEBUG, "show get 2: %s", str[1]);
+    redisLog(LOG_DEBUG, "show get 3: %s", str[2]);
 
     if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL)
         return REDIS_OK;

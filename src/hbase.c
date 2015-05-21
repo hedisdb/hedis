@@ -1,10 +1,11 @@
 #include "redis.h"
 #include <regex.h>
 
+// dbname://tablename:rowkey
+#define HBASE_COMMAND_PATTERN "(\\w+)://(\\w+):(\\w+)"
 #define MAX_ERROR_MSG 0x1000
 
-char **match_regex (const char * to_match)
-{
+char **match_regex(const char * to_match){
   regex_t * r = malloc(sizeof(regex_t));
 
   int status = regcomp(r, HBASE_COMMAND_PATTERN, REG_EXTENDED|REG_NEWLINE);
@@ -15,7 +16,7 @@ char **match_regex (const char * to_match)
     regerror(status, r, error_message, MAX_ERROR_MSG);
 
     printf("Regex error compiling '%s': %s\n", HBASE_COMMAND_PATTERN, error_message);
-    
+
     return NULL;
   }
 
@@ -57,6 +58,7 @@ char **match_regex (const char * to_match)
       sprintf(str[i - 1], "'%.*s'", size, to_match + start);
     }
   }
+
   p += m[0].rm_eo;
 
   return str;

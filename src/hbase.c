@@ -3,21 +3,22 @@
 
 #define MAX_ERROR_MSG 0x1000
 
-int compile_regex (regex_t * r)
+char **match_regex (const char * to_match)
 {
-  int status = regcomp (r, HBASE_COMMAND_PATTERN, REG_EXTENDED|REG_NEWLINE);
+  regex_t * r = malloc(sizeof(regex_t));
+
+  int status = regcomp(r, HBASE_COMMAND_PATTERN, REG_EXTENDED|REG_NEWLINE);
+
   if (status != 0) {
     char error_message[MAX_ERROR_MSG];
-    regerror (status, r, error_message, MAX_ERROR_MSG);
-    printf ("Regex error compiling '%s': %s\n",
-        HBASE_COMMAND_PATTERN, error_message);
-    return 1;
-  }
-  return 0;
-}
 
-char **match_regex (regex_t * r, const char * to_match)
-{
+    regerror(status, r, error_message, MAX_ERROR_MSG);
+
+    printf("Regex error compiling '%s': %s\n", HBASE_COMMAND_PATTERN, error_message);
+    
+    return NULL;
+  }
+
   char **str = malloc(sizeof(char *) * 3);
 
   /* "P" is a pointer into the string which points to the end of the
@@ -29,21 +30,25 @@ char **match_regex (regex_t * r, const char * to_match)
   regmatch_t m[n_matches];
 
   int i = 0;
-  int nomatch = regexec (r, p, n_matches, m, 0);
+  int nomatch = regexec(r, p, n_matches, m, 0);
 
   if (nomatch) {
     printf("No more matches.\n");
+
     return NULL;
   }
 
   for (i = 0; i < n_matches; i++) {
     int start;
     int finish;
+
     if (m[i].rm_so == -1) {
       break;
     }
+
     start = m[i].rm_so + (p - to_match);
     finish = m[i].rm_eo + (p - to_match);
+
     if (i != 0) {
       int size = finish - start;
 

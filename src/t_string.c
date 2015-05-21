@@ -161,9 +161,7 @@ int getGenericCommand(redisClient *c) {
 
     redisLog(LOG_DEBUG, "show get parameter: %s", find_text);
 
-    compile_regex(&r);
-
-    char **str = match_regex(&r, find_text);
+    char **str = match_regex(find_text);
 
     redisLog(LOG_DEBUG, "show get 1: %s", str[0]);
     redisLog(LOG_DEBUG, "show get 2: %s", str[1]);

@@ -55,7 +55,7 @@ char **match_regex(const char * to_match){
 
       str[i - 1] = malloc(sizeof(char) * size);
 
-      sprintf(str[i - 1], "'%.*s'", size, to_match + start);
+      sprintf(str[i - 1], "%.*s", size, to_match + start);
     }
   }
 

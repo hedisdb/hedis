@@ -163,12 +163,11 @@ int getGenericCommand(redisClient *c) {
 
         if (str == NULL) {
             addReply(c,shared.nullbulk);
-
             return REDIS_OK;
         }
 
+        // TODO: connect to HBase to GET rowkey
         addReply(c,shared.nullbulk);
-
         return REDIS_OK;
     }
 

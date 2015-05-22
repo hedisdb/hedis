@@ -156,19 +156,21 @@ void psetexCommand(redisClient *c) {
 
 int getGenericCommand(redisClient *c) {
     robj *o;
-    regex_t r;
     const char * find_text = c->argv[1]->ptr;
 
-    redisLog(LOG_DEBUG, "show get parameter: %s", find_text);
+    if ((o = lookupKeyRead(c->db,c->argv[1])) == NULL) {
+        char **str = parseHBaseProtocol(find_text);
 
-    char **str = parseHBaseProtocol(find_text);
+        if (str == NULL) {
+            addReply(c,shared.nullbulk);
 
-    redisLog(LOG_DEBUG, "show get 1: %s", str[0]);
-    redisLog(LOG_DEBUG, "show get 2: %s", str[1]);
-    redisLog(LOG_DEBUG, "show get 3: %s", str[2]);
+            return REDIS_OK;
+        }
 
-    if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL)
+        addReply(c,shared.nullbulk);
+
         return REDIS_OK;
+    }
 
     if (o->type != REDIS_STRING) {
         addReply(c,shared.wrongtypeerr);

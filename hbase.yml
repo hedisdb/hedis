@@ -1,2 +1,5 @@
 hbase1:
   zookeeper: localhost
+
+hbase2:
+  zookeeper: localhost2

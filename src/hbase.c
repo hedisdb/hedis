@@ -65,27 +65,26 @@ char **parse_hbase_protocol(const char * to_match){
   return str;
 }
 
-hbaseConfig *parse_hbase_config(const char * filename){
-  FILE *fh = fopen(filename, "r");
+hbaseConfig **parse_hbase_config(const char * filename){
+  FILE *file = fopen(filename, "r");
 
   yaml_parser_t parser;
-  yaml_token_t  token;
+  yaml_token_t token;
+  hbaseConfig **configs;
 
-  /* Initialize parser */
+  int config_counts = count_entries(file);
+
+  printf("config_counts: %d\n", config_counts);
+
   if(!yaml_parser_initialize(&parser)) {
       fputs("Failed to initialize parser!\n", stderr);
   }
 
-  if(fh == NULL) {
-      fputs("Failed to open file!\n", stderr);
-  }
-
-  /* Set input file */
-  yaml_parser_set_input_file(&parser, fh);
-
-  /* BEGIN new code */
+  yaml_parser_set_input_file(&parser, file);
+  
   do {
     yaml_parser_scan(&parser, &token);
+
     switch(token.type)
     {
     /* Stream start/end */
@@ -105,8 +104,10 @@ hbaseConfig *parse_hbase_config(const char * filename){
     default:
       printf("Got token of type %d\n", token.type);
     }
-    if(token.type != YAML_STREAM_END_TOKEN)
+
+    if(token.type != YAML_STREAM_END_TOKEN) {
       yaml_token_delete(&token);
+    }
   } while(token.type != YAML_STREAM_END_TOKEN);
 
   yaml_token_delete(&token);
@@ -114,7 +115,47 @@ hbaseConfig *parse_hbase_config(const char * filename){
 
   /* Cleanup */
   yaml_parser_delete(&parser);
-  fclose(fh);
+
+  fclose(file);
 
   return NULL;
+}
+
+int count_entries(FILE *file) {
+  yaml_parser_t parser;
+  yaml_token_t token;
+  int counts = 0;
+
+  /* Initialize parser */
+  if(!yaml_parser_initialize(&parser)) {
+      fputs("Failed to initialize parser!\n", stderr);
+  }
+
+  if(file == NULL) {
+      fputs("Failed to open file!\n", stderr);
+  }
+
+  /* Set input file */
+  yaml_parser_set_input_file(&parser, file);
+
+  /* BEGIN new code */
+  // calculate entry counts
+  do {
+    yaml_parser_scan(&parser, &token);
+
+    if (token.type == YAML_BLOCK_ENTRY_TOKEN){
+      counts++;
+    }
+
+    if(token.type != YAML_STREAM_END_TOKEN) {
+      yaml_token_delete(&token);
+    }
+  } while(token.type != YAML_STREAM_END_TOKEN);
+
+  /* Cleanup */
+  yaml_parser_delete(&parser);
+
+  fseek(file, 0, SEEK_SET);
+
+  return counts;
 }

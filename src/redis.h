@@ -1600,4 +1600,4 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 
 /* HBase parser */
 char **parse_hbase_protocol(const char * to_match);
-hbaseConfig *parse_hbase_config(const char * filename);
+hbaseConfig **parse_hbase_config(const char * filename);

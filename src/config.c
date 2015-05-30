@@ -604,7 +604,17 @@ void loadServerConfigFromString(char *config) {
                 if (err) goto loaderr;
             }
         } else if (!strcasecmp(argv[0],"hbase")) {
-            parse_hbase_config(argv[1]);
+            hbaseConfig **configs = parse_hbase_config(argv[1]);
+
+            int length = 2;
+
+            printf("length: %d\n", length);
+
+            for(int i = 0; i < length; i++){
+                printf("i = %d\n", i);
+                printf("name: %s\n", configs[i]->name);
+                printf("zookeepers: %s\n", configs[i]->zookeepers);
+            }
         } else {
             err = "Bad directive or wrong number of arguments"; goto loaderr;
         }

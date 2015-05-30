@@ -603,6 +603,8 @@ void loadServerConfigFromString(char *config) {
                 err = sentinelHandleConfiguration(argv+1,argc-1);
                 if (err) goto loaderr;
             }
+        } else if (!strcasecmp(argv[0],"hbase")) {
+            printf("hbase config file: %s\n", argv[1]);
         } else {
             err = "Bad directive or wrong number of arguments"; goto loaderr;
         }

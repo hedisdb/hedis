@@ -1007,6 +1007,12 @@ typedef struct {
     dictEntry *de;
 } hashTypeIterator;
 
+/* HBase Config */
+typedef struct {
+    char *name;
+    char *zookeepers;
+} hbaseConfig;
+
 #define REDIS_HASH_KEY 1
 #define REDIS_HASH_VALUE 2
 
@@ -1592,5 +1598,6 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 
 #endif
 
-/* HBase command */
-char **parseHBaseProtocol(const char * to_match);
+/* HBase parser */
+char **parse_hbase_protocol(const char * to_match);
+hbaseConfig *parse_hbase_config(const char * filename);

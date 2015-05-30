@@ -159,7 +159,7 @@ int getGenericCommand(redisClient *c) {
     const char * find_text = c->argv[1]->ptr;
 
     if ((o = lookupKeyRead(c->db,c->argv[1])) == NULL) {
-        char **str = parseHBaseProtocol(find_text);
+        char **str = parse_hbase_protocol(find_text);
 
         if (str == NULL) {
             addReply(c,shared.nullbulk);

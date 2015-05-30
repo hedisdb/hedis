@@ -65,7 +65,7 @@ char **parse_hbase_protocol(const char * to_match){
   return str;
 }
 
-hbaseConfig **parse_hbase_config(const char * filename){
+hedisConfig *parse_hedis_config(const char * filename){
   FILE *file = fopen(filename, "r");
 
   yaml_parser_t parser;
@@ -73,14 +73,17 @@ hbaseConfig **parse_hbase_config(const char * filename){
 
   int config_counts = count_entries(file);
 
-  hbaseConfig **configs = malloc(sizeof(hbaseConfig *) * config_counts);
+  hedisConfig *config = malloc(sizeof(hedisConfig));
+
+  config->hbase_config_count = config_counts;
+  config->hbase_configs = malloc(sizeof(hbaseConfig *) * config_counts);
 
   for (int i = 0; i < config_counts; i++) {
-    configs[i] = malloc(sizeof(hbaseConfig));
+    config->hbase_configs[i] = malloc(sizeof(hbaseConfig));
   }
   
   if (!yaml_parser_initialize(&parser)) {
-      fputs("Failed to initialize parser!\n", stderr);
+    fputs("Failed to initialize parser!\n", stderr);
   }
 
   yaml_parser_set_input_file(&parser, file);
@@ -155,13 +158,13 @@ hbaseConfig **parse_hbase_config(const char * filename){
         }
       } else if (token_type == 1){
         if (value_type == 0) {
-          configs[current_index]->name = malloc(sizeof(char) * strlen(value));
+          config->hbase_configs[current_index]->name = malloc(sizeof(char) * strlen(value));
 
-          strcpy(configs[current_index]->name, value);
+          strcpy(config->hbase_configs[current_index]->name, value);
         } else if (value_type == 1) {
-          configs[current_index]->zookeepers = malloc(sizeof(char) * strlen(value));
+          config->hbase_configs[current_index]->zookeepers = malloc(sizeof(char) * strlen(value));
 
-          strcpy(configs[current_index]->zookeepers, value);
+          strcpy(config->hbase_configs[current_index]->zookeepers, value);
         }
       }
 
@@ -184,7 +187,7 @@ hbaseConfig **parse_hbase_config(const char * filename){
 
   fclose(file);
 
-  return configs;
+  return config;
 }
 
 int count_entries(FILE *file) {

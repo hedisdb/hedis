@@ -603,17 +603,15 @@ void loadServerConfigFromString(char *config) {
                 err = sentinelHandleConfiguration(argv+1,argc-1);
                 if (err) goto loaderr;
             }
-        } else if (!strcasecmp(argv[0],"hbase")) {
-            hbaseConfig **configs = parse_hbase_config(argv[1]);
+        } else if (!strcasecmp(argv[0],"hedis")) {
+            hedisConfig *config = parse_hedis_config(argv[1]);
 
-            int length = 2;
+            printf("length: %d\n", config->hbase_config_count);
 
-            printf("length: %d\n", length);
-
-            for(int i = 0; i < length; i++){
+            for(int i = 0; i < config->hbase_config_count; i++){
                 printf("i = %d\n", i);
-                printf("name: %s\n", configs[i]->name);
-                printf("zookeepers: %s\n", configs[i]->zookeepers);
+                printf("name: %s\n", config->hbase_configs[i]->name);
+                printf("zookeepers: %s\n", config->hbase_configs[i]->zookeepers);
             }
         } else {
             err = "Bad directive or wrong number of arguments"; goto loaderr;

@@ -1013,6 +1013,11 @@ typedef struct {
     char *zookeepers;
 } hbaseConfig;
 
+typedef struct {
+	hbaseConfig **hbase_configs;
+	int hbase_config_count;
+} hedisConfig;
+
 #define REDIS_HASH_KEY 1
 #define REDIS_HASH_VALUE 2
 
@@ -1600,4 +1605,4 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 
 /* HBase parser */
 char **parse_hbase_protocol(const char * to_match);
-hbaseConfig **parse_hbase_config(const char * filename);
+hedisConfig *parse_hedis_config(const char * filename);

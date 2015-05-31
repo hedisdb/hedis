@@ -166,8 +166,21 @@ int getGenericCommand(redisClient *c) {
             return REDIS_OK;
         }
 
-        // TODO: connect to HBase to GET rowkey
-        const char * value = "hbase-test";
+        const char * value = NULL;
+
+        for (int i = 0; i < hedis_config->hbase_config_count; i++) {
+            if (!strcasecmp(hedis_config->hbase_configs[i]->name, str[0])) {
+                // TODO: connect to HBase to GET rowkey
+                value = str[1];
+
+                break;
+            }
+        }
+
+        if (value == NULL) {
+            addReply(c,shared.nullbulk);
+            return REDIS_OK;
+        }
 
         robj *hbaseValue = createStringObject(value, strlen(value));
 

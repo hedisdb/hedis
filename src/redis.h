@@ -1036,6 +1036,7 @@ extern dictType shaScriptObjectDictType;
 extern double R_Zero, R_PosInf, R_NegInf, R_Nan;
 extern dictType hashDictType;
 extern dictType replScriptCacheDictType;
+extern hedisConfig *hedis_config;
 
 /*-----------------------------------------------------------------------------
  * Functions prototypes
@@ -1574,7 +1575,6 @@ void pfcountCommand(redisClient *c);
 void pfmergeCommand(redisClient *c);
 void pfdebugCommand(redisClient *c);
 void latencyCommand(redisClient *c);
-void randCommand(redisClient *c);
 
 #if defined(__GNUC__)
 void *calloc(size_t count, size_t size) __attribute__ ((deprecated));
@@ -1605,4 +1605,4 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 
 /* HBase parser */
 char **parse_hbase_protocol(const char * to_match);
-hedisConfig *parse_hedis_config(const char * filename);
+void parse_hedis_config(const char * filename);

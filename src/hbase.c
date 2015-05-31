@@ -6,6 +6,8 @@
 #define HBASE_COMMAND_PATTERN "(\\w+)://(\\w+):(\\w+)"
 #define MAX_ERROR_MSG 0x1000
 
+hedisConfig *hedis_config;
+
 char **parse_hbase_protocol(const char * to_match){
   regex_t * r = malloc(sizeof(regex_t));
 
@@ -65,7 +67,7 @@ char **parse_hbase_protocol(const char * to_match){
   return str;
 }
 
-hedisConfig *parse_hedis_config(const char * filename){
+void parse_hedis_config(const char * filename){
   FILE *file = fopen(filename, "r");
 
   yaml_parser_t parser;
@@ -73,13 +75,13 @@ hedisConfig *parse_hedis_config(const char * filename){
 
   int config_counts = count_entries(file);
 
-  hedisConfig *config = malloc(sizeof(hedisConfig));
+  hedis_config = malloc(sizeof(hedisConfig *));
 
-  config->hbase_config_count = config_counts;
-  config->hbase_configs = malloc(sizeof(hbaseConfig *) * config_counts);
+  hedis_config->hbase_config_count = config_counts;
+  hedis_config->hbase_configs = malloc(sizeof(hbaseConfig *) * config_counts);
 
   for (int i = 0; i < config_counts; i++) {
-    config->hbase_configs[i] = malloc(sizeof(hbaseConfig));
+    hedis_config->hbase_configs[i] = malloc(sizeof(hbaseConfig));
   }
   
   if (!yaml_parser_initialize(&parser)) {
@@ -158,13 +160,13 @@ hedisConfig *parse_hedis_config(const char * filename){
         }
       } else if (token_type == 1){
         if (value_type == 0) {
-          config->hbase_configs[current_index]->name = malloc(sizeof(char) * strlen(value));
+          hedis_config->hbase_configs[current_index]->name = malloc(sizeof(char) * strlen(value));
 
-          strcpy(config->hbase_configs[current_index]->name, value);
+          strcpy(hedis_config->hbase_configs[current_index]->name, value);
         } else if (value_type == 1) {
-          config->hbase_configs[current_index]->zookeepers = malloc(sizeof(char) * strlen(value));
+          hedis_config->hbase_configs[current_index]->zookeepers = malloc(sizeof(char) * strlen(value));
 
-          strcpy(config->hbase_configs[current_index]->zookeepers, value);
+          strcpy(hedis_config->hbase_configs[current_index]->zookeepers, value);
         }
       }
 
@@ -186,8 +188,6 @@ hedisConfig *parse_hedis_config(const char * filename){
   yaml_parser_delete(&parser);
 
   fclose(file);
-
-  return config;
 }
 
 int count_entries(FILE *file) {

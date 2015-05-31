@@ -43,6 +43,8 @@ typedef struct configEnum {
     const int val;
 } configEnum;
 
+hedisConfig *hedis_config;
+
 configEnum maxmemory_policy_enum[] = {
     {"volatile-lru", REDIS_MAXMEMORY_VOLATILE_LRU},
     {"volatile-random",REDIS_MAXMEMORY_VOLATILE_RANDOM},
@@ -604,15 +606,9 @@ void loadServerConfigFromString(char *config) {
                 if (err) goto loaderr;
             }
         } else if (!strcasecmp(argv[0],"hedis")) {
-            hedisConfig *config = parse_hedis_config(argv[1]);
+            parse_hedis_config(argv[1]);
 
-            printf("length: %d\n", config->hbase_config_count);
-
-            for(int i = 0; i < config->hbase_config_count; i++){
-                printf("i = %d\n", i);
-                printf("name: %s\n", config->hbase_configs[i]->name);
-                printf("zookeepers: %s\n", config->hbase_configs[i]->zookeepers);
-            }
+            redisLog(REDIS_NOTICE,"Already load Hedis configuration");
         } else {
             err = "Bad directive or wrong number of arguments"; goto loaderr;
         }

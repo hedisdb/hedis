@@ -10,7 +10,9 @@ hedisType get_hedis_type(const char * db_name) {
     return HEDIS_TYPE_UNDEFINED;
 }
 
-char *get_hedis_value(hedisType type, const char ** str) {
+char *get_hedis_value(const char ** str) {
+    hedisType type = get_hedis_type(str[0]);
+
 	if (type == HEDIS_TYPE_UNDEFINED) {
 		return NULL;
 	}

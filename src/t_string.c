@@ -166,10 +166,8 @@ int getGenericCommand(redisClient *c) {
             return REDIS_OK;
         }
 
-        hedisType type = get_hedis_type(str[0]);
-
         // TODO: connect to DB to GET rowkey
-        const char * value = get_hedis_value(type, str);
+        const char * value = get_hedis_value(str);
 
         if (value == NULL) {
             addReply(c,shared.nullbulk);

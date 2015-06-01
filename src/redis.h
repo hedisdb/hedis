@@ -1610,8 +1610,7 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 #endif
 
 /* Hedis */
-hedisType get_hedis_type(const char * db_name);
-char *get_hedis_value(hedisType type, const char ** str);
+char *get_hedis_value(const char ** str);
 
 /* HBase parser */
 char **parse_hbase_protocol(const char * to_match);

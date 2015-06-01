@@ -166,16 +166,10 @@ int getGenericCommand(redisClient *c) {
             return REDIS_OK;
         }
 
-        const char * value = NULL;
+        hedisType type = get_hedis_type(str[0]);
 
-        for (int i = 0; i < hedis_config->hbase_config_count; i++) {
-            if (!strcasecmp(hedis_config->hbase_configs[i]->name, str[0])) {
-                // TODO: connect to HBase to GET rowkey
-                value = str[1];
-
-                break;
-            }
-        }
+        // TODO: connect to DB to GET rowkey
+        const char * value = get_hedis_value(type, str);
 
         if (value == NULL) {
             addReply(c,shared.nullbulk);

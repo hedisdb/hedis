@@ -1018,6 +1018,12 @@ typedef struct {
 	int hbase_config_count;
 } hedisConfig;
 
+typedef enum {
+	HEDIS_TYPE_UNDEFINED,
+	HEDIS_TYPE_HBASE,
+	HEDIS_TYPE_MYSQL
+} hedisType;
+
 #define REDIS_HASH_KEY 1
 #define REDIS_HASH_VALUE 2
 
@@ -1602,6 +1608,10 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
     printf("-- MARK %s:%d --\n", __FILE__, __LINE__)
 
 #endif
+
+/* Hedis */
+hedisType get_hedis_type(const char * db_name);
+char *get_hedis_value(hedisType type, const char ** str);
 
 /* HBase parser */
 char **parse_hbase_protocol(const char * to_match);

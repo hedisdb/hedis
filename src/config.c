@@ -43,8 +43,6 @@ typedef struct configEnum {
     const int val;
 } configEnum;
 
-hedisConfig *hedis_config;
-
 configEnum maxmemory_policy_enum[] = {
     {"volatile-lru", REDIS_MAXMEMORY_VOLATILE_LRU},
     {"volatile-random",REDIS_MAXMEMORY_VOLATILE_RANDOM},

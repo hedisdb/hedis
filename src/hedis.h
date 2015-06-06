@@ -16,6 +16,11 @@ typedef enum {
 } hedisType;
 
 typedef struct {
-	hedisType type;
+	char *type;
 	void *lib;
 } hedisConnector;
+
+typedef struct {
+	int connector_count;
+	hedisConnector **hedisConnector;
+} hedisConnectorList;

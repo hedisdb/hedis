@@ -160,10 +160,8 @@ int count_connectors(FILE *file) {
   do {
     yaml_parser_scan(&parser, &token);
 
-    if (token.type == YAML_BLOCK_ENTRY_TOKEN){
-      if (parser.indent == 0){
-        counts++;
-      }
+    if (token.type == YAML_BLOCK_ENTRY_TOKEN && parser.indent == 0){
+      counts++;
     }
 
     if(token.type != YAML_STREAM_END_TOKEN) {

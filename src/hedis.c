@@ -19,7 +19,7 @@ int parse_hedis_config(const char * filename){
   yaml_parser_t parser;
   yaml_token_t token;
 
-  int connector_count = count_connectors(file);
+  int connector_count = load_connectors(file);
 
   hedis_connector_list = malloc(sizeof(hedisConnectorList *));
 
@@ -138,7 +138,7 @@ int parse_hedis_config(const char * filename){
   return 0;
 }
 
-int count_connectors(FILE *file) {
+int load_connectors(FILE *file) {
   yaml_parser_t parser;
   yaml_token_t token;
   int counts = 0;

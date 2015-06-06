@@ -17,7 +17,7 @@ int parse_hedis_config(const char * filename){
   yaml_parser_t parser;
   yaml_token_t token;
 
-  int config_counts = count_entries(file);
+  int config_counts = count_connectors(file);
 
   // hedis_config = malloc(sizeof(hedisConfig *));
 
@@ -134,4 +134,43 @@ int parse_hedis_config(const char * filename){
   fclose(file);
 
   return 0;
+}
+
+int count_connectors(FILE *file) {
+  yaml_parser_t parser;
+  yaml_token_t token;
+  int counts = 0;
+
+  /* Initialize parser */
+  if(!yaml_parser_initialize(&parser)) {
+      fputs("Failed to initialize parser!\n", stderr);
+  }
+
+  if(file == NULL) {
+      fputs("Failed to open file!\n", stderr);
+  }
+
+  /* Set input file */
+  yaml_parser_set_input_file(&parser, file);
+
+  /* BEGIN new code */
+  // calculate entry counts
+  do {
+    yaml_parser_scan(&parser, &token);
+
+    if (token.type == YAML_BLOCK_ENTRY_TOKEN){
+      counts++;
+    }
+
+    if(token.type != YAML_STREAM_END_TOKEN) {
+      yaml_token_delete(&token);
+    }
+  } while(token.type != YAML_STREAM_END_TOKEN);
+
+  /* Cleanup */
+  yaml_parser_delete(&parser);
+
+  fseek(file, 0, SEEK_SET);
+
+  return counts;
 }

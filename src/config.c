@@ -606,9 +606,11 @@ void loadServerConfigFromString(char *config) {
                 if (err) goto loaderr;
             }
         } else if (!strcasecmp(argv[0],"hedis")) {
-            parse_hedis_config(argv[1]);
+            int status = parse_hedis_config(argv[1]);
 
-            redisLog(REDIS_NOTICE,"Already load Hedis configuration");
+            if (status == 0) {
+                redisLog(REDIS_NOTICE,"Already load Hedis configuration");
+            }
         } else {
             err = "Bad directive or wrong number of arguments"; goto loaderr;
         }

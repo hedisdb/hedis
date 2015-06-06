@@ -14,3 +14,8 @@ typedef enum {
 	HEDIS_TYPE_HBASE,
 	HEDIS_TYPE_MYSQL
 } hedisType;
+
+typedef struct {
+	hedisType type;
+	void *lib;
+} hedisConnector;

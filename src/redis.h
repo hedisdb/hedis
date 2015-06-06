@@ -1598,4 +1598,4 @@ char *get_hedis_value(const char ** str);
 
 /* HBase parser */
 char **parse_hbase_protocol(const char * to_match);
-void parse_hedis_config(const char * filename);
+int parse_hedis_config(const char * filename);

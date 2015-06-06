@@ -11,5 +11,5 @@ typedef struct {
 
 typedef struct {
 	int connector_count;
-	hedisConnector **hedisConnector;
+	hedisConnector **connectors;
 } hedisConnectorList;

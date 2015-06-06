@@ -1026,6 +1026,7 @@ extern dictType shaScriptObjectDictType;
 extern double R_Zero, R_PosInf, R_NegInf, R_Nan;
 extern dictType hashDictType;
 extern dictType replScriptCacheDictType;
+extern hedisConnectorList *hedis_connector_list;
 
 /*-----------------------------------------------------------------------------
  * Functions prototypes

@@ -1,6 +1,8 @@
 #include "redis.h"
 #include <yaml.h>
 
+hedisConnectorList *hedis_connector_list;
+
 char *get_hedis_value(const char ** str) {
 	return str[1];
 }
@@ -17,16 +19,16 @@ int parse_hedis_config(const char * filename){
   yaml_parser_t parser;
   yaml_token_t token;
 
-  int config_counts = count_connectors(file);
+  int connector_count = count_connectors(file);
 
-  // hedis_config = malloc(sizeof(hedisConfig *));
+  hedis_connector_list = malloc(sizeof(hedisConnectorList *));
 
-  // hedis_config->hbase_config_count = config_counts;
-  // hedis_config->hbase_configs = malloc(sizeof(hbaseConfig *) * config_counts);
+  hedis_connector_list->connector_count = connector_count;
+  hedis_connector_list->connectors = malloc(sizeof(hedisConnector *) * connector_count);
 
-  // for (int i = 0; i < config_counts; i++) {
-  //   hedis_config->hbase_configs[i] = malloc(sizeof(hbaseConfig));
-  // }
+  for (int i = 0; i < connector_count; i++) {
+    hedis_connector_list->connectors[i] = malloc(sizeof(hedisConnector));
+  }
 
   if (!yaml_parser_initialize(&parser)) {
     fputs("Failed to initialize parser!\n", stderr);
@@ -159,7 +161,9 @@ int count_connectors(FILE *file) {
     yaml_parser_scan(&parser, &token);
 
     if (token.type == YAML_BLOCK_ENTRY_TOKEN){
-      counts++;
+      if (parser.indent == 0){
+        counts++;
+      }
     }
 
     if(token.type != YAML_STREAM_END_TOKEN) {

@@ -64,6 +64,7 @@ typedef long long mstime_t; /* millisecond time type. */
 #include "latency.h" /* Latency monitor API */
 #include "sparkline.h" /* ASII graphs API */
 #include "quicklist.h"
+#include "hedis.h" /* Hedis data structure */
 
 /* Following includes allow test functions to be called from Redis main() */
 #include "zipmap.h"
@@ -1006,23 +1007,6 @@ typedef struct {
     dictIterator *di;
     dictEntry *de;
 } hashTypeIterator;
-
-/* HBase Config */
-typedef struct {
-    char *name;
-    char *zookeepers;
-} hbaseConfig;
-
-typedef struct {
-	hbaseConfig **hbase_configs;
-	int hbase_config_count;
-} hedisConfig;
-
-typedef enum {
-	HEDIS_TYPE_UNDEFINED,
-	HEDIS_TYPE_HBASE,
-	HEDIS_TYPE_MYSQL
-} hedisType;
 
 #define REDIS_HASH_KEY 1
 #define REDIS_HASH_VALUE 2

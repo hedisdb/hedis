@@ -6,8 +6,6 @@
 #define HBASE_COMMAND_PATTERN "(\\w+)://(\\w+):(\\w+)"
 #define MAX_ERROR_MSG 0x1000
 
-hedisConfig *hedis_config;
-
 char **parse_hbase_protocol(const char * to_match){
   regex_t * r = malloc(sizeof(regex_t));
 

@@ -1026,7 +1026,6 @@ extern dictType shaScriptObjectDictType;
 extern double R_Zero, R_PosInf, R_NegInf, R_Nan;
 extern dictType hashDictType;
 extern dictType replScriptCacheDictType;
-extern hedisConfig *hedis_config;
 
 /*-----------------------------------------------------------------------------
  * Functions prototypes
@@ -1594,8 +1593,8 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 #endif
 
 /* Hedis */
+int parse_hedis_config(const char * filename);
 char *get_hedis_value(const char ** str);
 
 /* HBase parser */
 char **parse_hbase_protocol(const char * to_match);
-int parse_hedis_config(const char * filename);

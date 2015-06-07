@@ -18,7 +18,7 @@ void *load_connector(const char * connector_name, const int connector_index) {
     void *lib = dlopen(lib_name, RTLD_LAZY);
 
     if (!lib) {
-        redisLog(REDIS_WARNING, "Load %s error", lib_name);
+        redisLog(REDIS_WARNING, "Load %s error, %s", lib_name, dlerror());
 
         return NULL;
     }

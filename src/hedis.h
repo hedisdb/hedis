@@ -1,9 +1,3 @@
-/* HBase Config */
-typedef struct {
-    char *name;
-    char *zookeepers;
-} hbaseConfig;
-
 typedef struct {
 	char *name;
 	void *lib;
@@ -13,3 +7,8 @@ typedef struct {
 	int connector_count;
 	hedisConnector **connectors;
 } hedisConnectorList;
+
+typedef struct {
+	char *key;
+	char *value;
+} hedisConfigEntry;

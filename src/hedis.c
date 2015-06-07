@@ -25,9 +25,17 @@ void *load_connector(const char * connector_name, const int connector_index) {
 
     dlerror();
 
-    int (*init)() = dlsym(lib, "init");
+    int (*init)(hedisConfigEntry *) = dlsym(lib, "init");
 
-    int status = (*init)();
+    hedisConfigEntry *entry = malloc(sizeof(hedisConfigEntry));
+
+    entry->key = malloc(sizeof(char) * 20);
+    entry->value = malloc(sizeof(char) * 20);
+
+    strcpy(entry->key, "abc");
+    strcpy(entry->value, "def");
+
+    int status = (*init)(entry);
 
     if (status != 0) {
         redisLog(REDIS_WARNING, "Initialize %s error", connector_name);

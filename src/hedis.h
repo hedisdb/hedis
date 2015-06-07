@@ -5,7 +5,7 @@ typedef struct {
 } hbaseConfig;
 
 typedef struct {
-	char *type;
+	char *name;
 	void *lib;
 } hedisConnector;
 

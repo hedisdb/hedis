@@ -1,5 +1,10 @@
 hbase:
-  - name: cdh1
-    zookeepers: localhost
-  - name: cdh2
-    zookeepers: localhost2
+- name: cdh1
+  zookeepers: localhost
+- name: cdh2
+  zookeepers: localhost2
+hbase2:
+- name: cdh1
+  zookeepers: localhost
+- name: cdh2
+  zookeepers: localhost2

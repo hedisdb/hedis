@@ -1,10 +1,41 @@
 #include "redis.h"
 #include <yaml.h>
+#include <dlfcn.h>
 
 hedisConnectorList *hedis_connector_list;
 
 char *get_hedis_value(const char ** str) {
     return str[1];
+}
+
+void *load_connector(const char * connector_name, const int connector_index) {
+    char *lib_name;
+
+    lib_name = malloc(sizeof(char) * 30);
+
+    sprintf(lib_name, "libhedis-connector-%s.so", connector_name);
+
+    void *lib = dlopen(lib_name, RTLD_LAZY);
+
+    if (!lib) {
+        redisLog(REDIS_WARNING, "Load %s error", lib_name);
+
+        return NULL;
+    }
+
+    dlerror();
+
+    int (*init)() = dlsym(lib, "init");
+
+    int status = (*init)();
+
+    if (status != 0) {
+        redisLog(REDIS_WARNING, "Initialize %s error", connector_name);
+
+        return NULL;
+    }
+
+    return lib;
 }
 
 int parse_hedis_config(const char * filename) {
@@ -28,6 +59,8 @@ int parse_hedis_config(const char * filename) {
 
     for (int i = 0; i < connector_count; i++) {
         hedis_connector_list->connectors[i] = malloc(sizeof(hedisConnector));
+
+        hedis_connector_list->connectors[i]->name = malloc(sizeof(char) * 30);
     }
 
     if (!yaml_parser_initialize(&parser)) {
@@ -40,6 +73,8 @@ int parse_hedis_config(const char * filename) {
     int next_index = 0;
     int token_type = -1;
     int value_type = -1;
+    int connector_index = -1;
+    void *lib;
 
     do {
         yaml_parser_scan(&parser, &token);
@@ -85,6 +120,8 @@ int parse_hedis_config(const char * filename) {
 
             next_index++;
 
+            connector_index++;
+
             break;
         case YAML_BLOCK_END_TOKEN:
             puts("<b>End block</b>");
@@ -99,26 +136,22 @@ int parse_hedis_config(const char * filename) {
             value = token.data.scalar.value;
 
             if (parser.indent == 0) {
-                load_connector(value);
+                lib = load_connector(value, connector_index);
             }
 
-            // if (token_type == 0) {
-            //   if (!strcasecmp(value, "name")) {
-            //     value_type = 0;
-            //   } else if (!strcasecmp(value, "zookeepers")) {
-            //     value_type = 1;
-            //   }
-            // } else if (token_type == 1){
-            //   if (value_type == 0) {
-            //     hedis_config->hbase_configs[current_index]->name = malloc(sizeof(char) * strlen(value));
+            if (token_type == 0) {
+                if (!strcasecmp(value, "name")) {
+                    value_type = 0;
+                } else {
+                    value_type = 1;
+                }
+            } else if (token_type == 1) {
+                if (value_type == 0) {
+                    strcpy(hedis_connector_list->connectors[connector_index]->name, value);
 
-            //     strcpy(hedis_config->hbase_configs[current_index]->name, value);
-            //   } else if (value_type == 1) {
-            //     hedis_config->hbase_configs[current_index]->zookeepers = malloc(sizeof(char) * strlen(value));
-
-            //     strcpy(hedis_config->hbase_configs[current_index]->zookeepers, value);
-            //   }
-            // }
+                    hedis_connector_list->connectors[connector_index]->lib = lib;
+                }
+            }
 
             break;
         /* Others */
@@ -179,18 +212,4 @@ int count_connectors(FILE *file) {
     fseek(file, 0, SEEK_SET);
 
     return counts;
-}
-
-void load_connector(const char * connector_name) {
-    char lib_name[30] = malloc(sizeof(char) * 30);
-
-    sprintf(lib_name, "libhedis-connector-%s.so", connector_name);
-
-    void *lib = dlopen(lib_name, RTLD_LAZY);
-
-    if (!lib) {
-        redisLog(REDIS_WARNING, "Load %s error", lib_name);
-
-        return;
-    }
 }

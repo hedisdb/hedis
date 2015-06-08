@@ -8,12 +8,20 @@ char *get_hedis_value(const char ** str) {
     return str[1];
 }
 
-void *load_connector(const char * connector_name, const int connector_index) {
+void load_hedis_connectors(){
+    printf("load_hedis_connectors\n");
+
+    for (int i = 0; i < hedis_connector_list->connector_count; i++){
+        load_connector(hedis_connector_list->connectors[i]);
+    }
+}
+
+void load_connector(hedisConnector *connector) {
     char *lib_name;
 
-    lib_name = malloc(sizeof(char) * 30);
+    lib_name = malloc(sizeof(char) * 40);
 
-    sprintf(lib_name, "libhedis-connector-%s.so", connector_name);
+    sprintf(lib_name, "libhedis-connector-%s.so", connector->type);
 
     void *lib = dlopen(lib_name, RTLD_LAZY);
 
@@ -25,25 +33,17 @@ void *load_connector(const char * connector_name, const int connector_index) {
 
     dlerror();
 
-    int (*init)(hedisConfigEntry *) = dlsym(lib, "init");
+    int (*init)(hedisConfigEntry **, int) = dlsym(lib, "init");
 
-    hedisConfigEntry *entry = malloc(sizeof(hedisConfigEntry));
-
-    entry->key = malloc(sizeof(char) * 20);
-    entry->value = malloc(sizeof(char) * 20);
-
-    strcpy(entry->key, "abc");
-    strcpy(entry->value, "def");
-
-    int status = (*init)(entry);
+    int status = (*init)(connector->entries, connector->entry_count);
 
     if (status != 0) {
-        redisLog(REDIS_WARNING, "Initialize %s error", connector_name);
+        redisLog(REDIS_WARNING, "Initialize %s error", connector->name);
 
         return NULL;
     }
 
-    return lib;
+    connector->lib = lib;
 }
 
 int parse_hedis_config(const char * filename) {
@@ -69,6 +69,7 @@ int parse_hedis_config(const char * filename) {
         hedis_connector_list->connectors[i] = malloc(sizeof(hedisConnector));
 
         hedis_connector_list->connectors[i]->name = malloc(sizeof(char) * 30);
+        hedis_connector_list->connectors[i]->type = malloc(sizeof(char) * 30);
         hedis_connector_list->connectors[i]->entries = malloc(sizeof(hedisConfigEntry) * 10);
     }
 
@@ -80,8 +81,8 @@ int parse_hedis_config(const char * filename) {
 
     int token_type = -1;
     int connector_index = -1;
-    hedisConfigEntry *entry;
     int entry_index = -1;
+    hedisConfigEntry *entry;
 
     do {
         yaml_parser_scan(&parser, &token);
@@ -149,6 +150,10 @@ int parse_hedis_config(const char * filename) {
                 if (token_type == 0) {
                     strcpy(entry->key, value);
                 } else if (token_type == 1) {
+                    if (!strcasecmp(entry->key, "type")) {
+                        strcpy(hedis_connector_list->connectors[connector_index]->type, value);
+                    }
+
                     strcpy(entry->value, value);
 
                     entry_index++;
@@ -225,8 +230,4 @@ int count_connectors(FILE *file) {
     fseek(file, 0, SEEK_SET);
 
     return counts;
-}
-
-void load_hedis_connectors(){
-    printf("load_hedis_connectors\n");
 }

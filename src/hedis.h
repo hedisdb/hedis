@@ -5,6 +5,7 @@ typedef struct {
 
 typedef struct {
 	char *name;
+	char *type;
 	int entry_count;
 	hedisConfigEntry **entries;
 	void *lib;

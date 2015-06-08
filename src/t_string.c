@@ -159,14 +159,13 @@ int getGenericCommand(redisClient *c) {
     const char * find_text = c->argv[1]->ptr;
 
     if ((o = lookupKeyRead(c->db,c->argv[1])) == NULL) {
-        char **str = parse_hbase_protocol(find_text);
+        char **str = parse_hedis_protocol(find_text);
 
         if (str == NULL) {
             addReply(c,shared.nullbulk);
             return REDIS_OK;
         }
 
-        // TODO: connect to DB to GET rowkey
         const char * value = get_hedis_value(str);
 
         if (value == NULL) {
@@ -174,17 +173,17 @@ int getGenericCommand(redisClient *c) {
             return REDIS_OK;
         }
 
-        robj *hbaseValue = createStringObject(value, strlen(value));
+        robj *hedisValue = createStringObject(value, strlen(value));
 
-        hbaseValue = tryObjectEncoding(hbaseValue);
+        hedisValue = tryObjectEncoding(hedisValue);
 
-        setKey(c->db,c->argv[1],hbaseValue);
+        setKey(c->db,c->argv[1],hedisValue);
 
         server.dirty++;
 
         notifyKeyspaceEvent(REDIS_NOTIFY_STRING,"set",c->argv[1],c->db->id);
 
-        addReplyBulk(c,hbaseValue);
+        addReplyBulk(c,hedisValue);
         return REDIS_OK;
     }
 

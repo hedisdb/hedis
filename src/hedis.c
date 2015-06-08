@@ -1,17 +1,37 @@
 #include "redis.h"
+#include <regex.h>
 #include <yaml.h>
 #include <dlfcn.h>
+
+// dbname://tablename:rowkey
+#define HEDIS_COMMAND_PATTERN "(\\w+)://(\\w+):(\\w+)"
+#define MAX_ERROR_MSG 0x1000
 
 hedisConnectorList *hedis_connector_list;
 
 char *get_hedis_value(const char ** str) {
-    return str[1];
+    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
+        if (!strcasecmp(hedis_connector_list->connectors[i]->name, str[0])) {
+            void *lib = hedis_connector_list->connectors[i]->lib;
+
+            // load library fail
+            if (lib == NULL) {
+                return NULL;
+            }
+
+            char *(*get_value)() = dlsym(lib, "get_value");
+
+            return (*get_value)();
+        }
+    }
+
+    return NULL;
 }
 
-void load_hedis_connectors(){
+void load_hedis_connectors() {
     printf("load_hedis_connectors\n");
 
-    for (int i = 0; i < hedis_connector_list->connector_count; i++){
+    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
         load_connector(hedis_connector_list->connectors[i]);
     }
 }
@@ -92,16 +112,16 @@ int parse_hedis_config(const char * filename) {
         switch (token.type) {
         /* Stream start/end */
         case YAML_STREAM_START_TOKEN:
-            puts("STREAM START");
+            // puts("STREAM START");
 
             break;
         case YAML_STREAM_END_TOKEN:
-            puts("STREAM END");
+            // puts("STREAM END");
 
             break;
         /* Token types (read before actual token) */
         case YAML_KEY_TOKEN:
-            printf("(Key token)   ");
+            // printf("(Key token)   ");
 
             if (parser.indent != 0) {
                 entry = malloc(sizeof(hedisConfigEntry));
@@ -114,27 +134,27 @@ int parse_hedis_config(const char * filename) {
 
             break;
         case YAML_VALUE_TOKEN:
-            printf("(Value token) ");
+            // printf("(Value token) ");
 
             token_type = 1;
 
             break;
         /* Block delimeters */
         case YAML_BLOCK_SEQUENCE_START_TOKEN:
-            puts("<b>Start Block (Sequence)</b>");
+            // puts("<b>Start Block (Sequence)</b>");
 
             break;
         case YAML_BLOCK_ENTRY_TOKEN:
-            puts("<b>Start Block (Entry)</b>");
+            // puts("<b>Start Block (Entry)</b>");
 
             break;
         case YAML_BLOCK_END_TOKEN:
-            puts("<b>End block</b>");
+            // puts("<b>End block</b>");
 
             break;
         /* Data */
         case YAML_BLOCK_MAPPING_START_TOKEN:
-            puts("[Block mapping]");
+            // puts("[Block mapping]");
 
             break;
         case YAML_SCALAR_TOKEN:
@@ -182,13 +202,13 @@ int parse_hedis_config(const char * filename) {
 
     fclose(file);
 
-    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
-        printf("hedis_connector_list->connectors[%d]->name: %s\n", i, hedis_connector_list->connectors[i]->name);
+    // for (int i = 0; i < hedis_connector_list->connector_count; i++) {
+    //     printf("hedis_connector_list->connectors[%d]->name: %s\n", i, hedis_connector_list->connectors[i]->name);
 
-        for(int j = 0; j < hedis_connector_list->connectors[i]->entry_count; j++){
-            printf("key: %s, value: %s\n", hedis_connector_list->connectors[i]->entries[j]->key, hedis_connector_list->connectors[i]->entries[j]->value);
-        }
-    }
+    //     for (int j = 0; j < hedis_connector_list->connectors[i]->entry_count; j++) {
+    //         printf("key: %s, value: %s\n", hedis_connector_list->connectors[i]->entries[j]->key, hedis_connector_list->connectors[i]->entries[j]->value);
+    //     }
+    // }
 
     return 0;
 }
@@ -230,4 +250,63 @@ int count_connectors(FILE *file) {
     fseek(file, 0, SEEK_SET);
 
     return counts;
+}
+
+char **parse_hedis_protocol(const char * to_match) {
+    regex_t * r = malloc(sizeof(regex_t));
+
+    int status = regcomp(r, HEDIS_COMMAND_PATTERN, REG_EXTENDED | REG_NEWLINE);
+
+    if (status != 0) {
+        char error_message[MAX_ERROR_MSG];
+
+        regerror(status, r, error_message, MAX_ERROR_MSG);
+
+        printf("Regex error compiling '%s': %s\n", HEDIS_COMMAND_PATTERN, error_message);
+
+        return NULL;
+    }
+
+    char **str = malloc(sizeof(char *) * 3);
+
+    /* "P" is a pointer into the string which points to the end of the
+     *        previous match. */
+    const char * p = to_match;
+    /* "N_matches" is the maximum number of matches allowed. */
+    const int n_matches = 10;
+    /* "M" contains the matches found. */
+    regmatch_t m[n_matches];
+
+    int i = 0;
+    int nomatch = regexec(r, p, n_matches, m, 0);
+
+    if (nomatch) {
+        printf("No more matches.\n");
+
+        return NULL;
+    }
+
+    for (i = 0; i < n_matches; i++) {
+        int start;
+        int finish;
+
+        if (m[i].rm_so == -1) {
+            break;
+        }
+
+        start = m[i].rm_so + (p - to_match);
+        finish = m[i].rm_eo + (p - to_match);
+
+        if (i != 0) {
+            int size = finish - start;
+
+            str[i - 1] = malloc(sizeof(char) * size);
+
+            sprintf(str[i - 1], "%.*s", size, to_match + start);
+        }
+    }
+
+    p += m[0].rm_eo;
+
+    return str;
 }

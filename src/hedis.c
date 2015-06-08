@@ -69,6 +69,7 @@ int parse_hedis_config(const char * filename) {
         hedis_connector_list->connectors[i] = malloc(sizeof(hedisConnector));
 
         hedis_connector_list->connectors[i]->name = malloc(sizeof(char) * 30);
+        hedis_connector_list->connectors[i]->entries = malloc(sizeof(hedisConfigEntry) * 10);
     }
 
     if (!yaml_parser_initialize(&parser)) {
@@ -77,12 +78,10 @@ int parse_hedis_config(const char * filename) {
 
     yaml_parser_set_input_file(&parser, file);
 
-    int current_index = -1;
-    int next_index = 0;
     int token_type = -1;
-    int value_type = -1;
     int connector_index = -1;
-    void *lib;
+    hedisConfigEntry *entry;
+    int entry_index = -1;
 
     do {
         yaml_parser_scan(&parser, &token);
@@ -103,7 +102,12 @@ int parse_hedis_config(const char * filename) {
         case YAML_KEY_TOKEN:
             printf("(Key token)   ");
 
-            if (current_index != -1) {
+            if (parser.indent != 0) {
+                entry = malloc(sizeof(hedisConfigEntry));
+
+                entry->key = malloc(sizeof(char) * 30);
+                entry->value = malloc(sizeof(char) * 30);
+
                 token_type = 0;
             }
 
@@ -111,9 +115,7 @@ int parse_hedis_config(const char * filename) {
         case YAML_VALUE_TOKEN:
             printf("(Value token) ");
 
-            if (current_index != -1) {
-                token_type = 1;
-            }
+            token_type = 1;
 
             break;
         /* Block delimeters */
@@ -123,12 +125,6 @@ int parse_hedis_config(const char * filename) {
             break;
         case YAML_BLOCK_ENTRY_TOKEN:
             puts("<b>Start Block (Entry)</b>");
-
-            current_index = next_index;
-
-            next_index++;
-
-            connector_index++;
 
             break;
         case YAML_BLOCK_END_TOKEN:
@@ -144,20 +140,21 @@ int parse_hedis_config(const char * filename) {
             value = token.data.scalar.value;
 
             if (parser.indent == 0) {
-                lib = load_connector(value, connector_index);
-            }
+                connector_index++;
 
-            if (token_type == 0) {
-                if (!strcasecmp(value, "name")) {
-                    value_type = 0;
-                } else {
-                    value_type = 1;
-                }
-            } else if (token_type == 1) {
-                if (value_type == 0) {
-                    strcpy(hedis_connector_list->connectors[connector_index]->name, value);
+                entry_index = -1;
 
-                    hedis_connector_list->connectors[connector_index]->lib = lib;
+                strcpy(hedis_connector_list->connectors[connector_index]->name, value);
+            } else {
+                if (token_type == 0) {
+                    strcpy(entry->key, value);
+                } else if (token_type == 1) {
+                    strcpy(entry->value, value);
+
+                    entry_index++;
+
+                    hedis_connector_list->connectors[connector_index]->entries[entry_index] = entry;
+                    hedis_connector_list->connectors[connector_index]->entry_count = entry_index + 1;
                 }
             }
 
@@ -179,6 +176,14 @@ int parse_hedis_config(const char * filename) {
     yaml_parser_delete(&parser);
 
     fclose(file);
+
+    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
+        printf("hedis_connector_list->connectors[%d]->name: %s\n", i, hedis_connector_list->connectors[i]->name);
+
+        for(int j = 0; j < hedis_connector_list->connectors[i]->entry_count; j++){
+            printf("key: %s, value: %s\n", hedis_connector_list->connectors[i]->entries[j]->key, hedis_connector_list->connectors[i]->entries[j]->value);
+        }
+    }
 
     return 0;
 }
@@ -205,7 +210,7 @@ int count_connectors(FILE *file) {
     do {
         yaml_parser_scan(&parser, &token);
 
-        if (token.type == YAML_BLOCK_ENTRY_TOKEN && parser.indent == 0) {
+        if (token.type == YAML_KEY_TOKEN && parser.indent == 0) {
             counts++;
         }
 
@@ -220,4 +225,8 @@ int count_connectors(FILE *file) {
     fseek(file, 0, SEEK_SET);
 
     return counts;
+}
+
+void load_hedis_connectors(){
+    printf("load_hedis_connectors\n");
 }

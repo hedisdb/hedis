@@ -606,6 +606,8 @@ void loadServerConfigFromString(char *config) {
         } else if (!strcasecmp(argv[0],"hedis")) {
             int status = parse_hedis_config(argv[1]);
 
+            load_hedis_connectors();
+
             if (status == 0) {
                 redisLog(REDIS_NOTICE,"Already load Hedis configuration");
             }

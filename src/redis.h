@@ -1595,6 +1595,7 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 
 /* Hedis */
 int parse_hedis_config(const char * filename);
+void load_hedis_connectors();
 char *get_hedis_value(const char ** str);
 
 /* HBase parser */

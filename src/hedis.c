@@ -29,8 +29,6 @@ char *get_hedis_value(const char ** str) {
 }
 
 void load_hedis_connectors() {
-    printf("load_hedis_connectors\n");
-
     for (int i = 0; i < hedis_connector_list->connector_count; i++) {
         load_connector(hedis_connector_list->connectors[i]);
     }
@@ -48,7 +46,9 @@ void load_connector(hedisConnector *connector) {
     if (!lib) {
         redisLog(REDIS_WARNING, "Load %s error, %s", lib_name, dlerror());
 
-        return NULL;
+        connector->lib = NULL;
+
+        return;
     }
 
     dlerror();
@@ -60,7 +60,9 @@ void load_connector(hedisConnector *connector) {
     if (status != 0) {
         redisLog(REDIS_WARNING, "Initialize %s error", connector->name);
 
-        return NULL;
+        connector->lib = NULL;
+
+        return;
     }
 
     connector->lib = lib;

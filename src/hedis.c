@@ -41,10 +41,6 @@ void load_connector(hedisConnector *connector) {
 
     sprintf(lib_name, "libhedis-connector-%s.so", connector->type);
 
-    if (!strcasecmp(lib_name, "hbase")) {
-        dlopen("libhbase.so", RTLD_LAZY);
-    }
-
     void *lib = dlopen(lib_name, RTLD_LAZY);
 
     if (!lib) {

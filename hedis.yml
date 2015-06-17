@@ -1,8 +1,8 @@
 cdh1:
   type: hbase
-  zookeepers: localhost
+  zookeeper: localhost:2181
 cdh2:
   type: hbase
-  zookeepers: localhost2
+  zookeeper: localhost:2181
 cdh3:
   type: template

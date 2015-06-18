@@ -1,8 +1,10 @@
 cdh1:
   type: hbase
   zookeeper: localhost:2181
+  extra: aaa
 cdh2:
   type: hbase
   zookeeper: localhost:2181
+  extra: bbb
 cdh3:
   type: template

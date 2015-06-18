@@ -9,6 +9,16 @@
 
 hedisConnectorList *hedis_connector_list;
 
+void print_hedis_connector(){
+    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
+        printf("hedis_connector_list->connectors[%d]->name: %s\n", i, hedis_connector_list->connectors[i]->name);
+
+        for (int j = 0; j < hedis_connector_list->connectors[i]->entry_count; j++) {
+            printf("key: %s, value: %s\n", hedis_connector_list->connectors[i]->entries[j]->key, hedis_connector_list->connectors[i]->entries[j]->value);
+        }
+    }
+}
+
 char *get_hedis_value(const char ** str) {
     for (int i = 0; i < hedis_connector_list->connector_count; i++) {
         if (!strcasecmp(hedis_connector_list->connectors[i]->name, str[0])) {
@@ -203,14 +213,6 @@ int parse_hedis_config(const char * filename) {
     yaml_parser_delete(&parser);
 
     fclose(file);
-
-    // for (int i = 0; i < hedis_connector_list->connector_count; i++) {
-    //     printf("hedis_connector_list->connectors[%d]->name: %s\n", i, hedis_connector_list->connectors[i]->name);
-
-    //     for (int j = 0; j < hedis_connector_list->connectors[i]->entry_count; j++) {
-    //         printf("key: %s, value: %s\n", hedis_connector_list->connectors[i]->entries[j]->key, hedis_connector_list->connectors[i]->entries[j]->value);
-    //     }
-    // }
 
     return 0;
 }

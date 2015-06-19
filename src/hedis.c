@@ -4,7 +4,7 @@
 #include <dlfcn.h>
 
 // dbname://tablename:rowkey
-#define HEDIS_COMMAND_PATTERN "(\\w+)://(\\w+):(\\w+)"
+#define HEDIS_COMMAND_PATTERN "(\\w+)://(.+)"
 #define MAX_ERROR_MSG 0x1000
 
 hedisConnectorList *hedis_connector_list;
@@ -19,7 +19,7 @@ void print_hedis_connector(){
     }
 }
 
-char *get_hedis_value(const char ** str) {
+char *get_hedis_value(const char **str) {
     for (int i = 0; i < hedis_connector_list->connector_count; i++) {
         if (!strcasecmp(hedis_connector_list->connectors[i]->name, str[0])) {
             void *lib = hedis_connector_list->connectors[i]->lib;
@@ -29,9 +29,9 @@ char *get_hedis_value(const char ** str) {
                 return NULL;
             }
 
-            char *(*get_value)() = dlsym(lib, "get_value");
+            char *(*get_value)(char *) = dlsym(lib, "get_value");
 
-            return (*get_value)();
+            return (*get_value)(str[1]);
         }
     }
 
@@ -271,7 +271,7 @@ char **parse_hedis_protocol(const char * to_match) {
         return NULL;
     }
 
-    char **str = malloc(sizeof(char *) * 3);
+    char **str = malloc(sizeof(char *) * 2);
 
     /* "P" is a pointer into the string which points to the end of the
      *        previous match. */

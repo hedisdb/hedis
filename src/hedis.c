@@ -3,8 +3,8 @@
 #include <yaml.h>
 #include <dlfcn.h>
 
-// dbname://tablename:rowkey
-#define HEDIS_COMMAND_PATTERN "(\\w+)://(.+)"
+// dbname://anything
+#define HEDIS_PROTOCOL_PATTERN "(\\w+)://(.+)"
 #define MAX_ERROR_MSG 0x1000
 
 hedisConnectorList *hedis_connector_list;
@@ -259,14 +259,14 @@ int count_connectors(FILE *file) {
 char **parse_hedis_protocol(const char * to_match) {
     regex_t * r = malloc(sizeof(regex_t));
 
-    int status = regcomp(r, HEDIS_COMMAND_PATTERN, REG_EXTENDED | REG_NEWLINE);
+    int status = regcomp(r, HEDIS_PROTOCOL_PATTERN, REG_EXTENDED | REG_NEWLINE);
 
     if (status != 0) {
         char error_message[MAX_ERROR_MSG];
 
         regerror(status, r, error_message, MAX_ERROR_MSG);
 
-        printf("Regex error compiling '%s': %s\n", HEDIS_COMMAND_PATTERN, error_message);
+        printf("Regex error compiling '%s': %s\n", HEDIS_PROTOCOL_PATTERN, error_message);
 
         return NULL;
     }

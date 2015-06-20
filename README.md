@@ -4,6 +4,6 @@ This is a modified version of [Redis](https://github.com/antirez/redis), maintai
 
 ## What is Hedis?
 
-Hedis can store data from **ANY** database.
+Traditionally, application server retrieves hot data from in-memory database(like Redis) to reduce unnecessary paths. If in-memory database doesn't have specific data, application server gets back to retrieve data from original database.
 
-Traditionally, application server retrieves hot data from in-memory database to reduce unnecessary paths. If in-memory database doesn't have specific data, application server turns to retrieve data from original database.
+Hedis can retrieve data from **ANY** database directly. Application server retrieves hot data from Hedis server, If Hedis server doesn't have specific data, Hedis launch connector to retrieve data from original database.

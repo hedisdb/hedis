@@ -3,3 +3,9 @@ cdh1:
   zookeeper: localhost:2181
 cdh2:
   type: template
+mysqltest:
+  type: mysql
+  username: root
+  password: MY_PASSWORD
+  host: localhost
+  database: hedistest

@@ -1,4 +1,6 @@
 #include "redis.h"
+#include <stdlib.h>
+#include <stdio.h>
 #include <regex.h>
 #include <yaml.h>
 #include <dlfcn.h>

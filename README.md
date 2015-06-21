@@ -17,8 +17,8 @@ Hedis can retrieve data from **ANY** database directly. Application server retri
 ## Hedis configuration file
 
 ```yaml
-cdh1: # connector name (required)
-  type: hbase # connector type (required)
+cdh1: # connector name (REQUIRED)
+  type: hbase # connector type (REQUIRED)
   zookeeper: localhost:2181 # other configuration (depends on its type)
 mysqltest:
   type: mysql
@@ -66,7 +66,7 @@ redis --hedis hedis.yml
 ### GET
 
 ```sh
-GET [connector-name]://[connector-command]
+GET [CONNECTOR-NAME]://[CONNECTOR-COMMAND]
 ```
 
 #### Example

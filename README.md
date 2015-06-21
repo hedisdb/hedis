@@ -4,11 +4,11 @@ This is a modified version of [Redis](https://github.com/antirez/redis), maintai
 
 ## What is Hedis?
 
-![hedis1](https://cloud.githubusercontent.com/assets/795839/8270046/6ad61e2e-17fb-11e5-9ba5-87706687d9ba.png)
+![hedis1](https://cloud.githubusercontent.com/assets/795839/8271948/da04bf9a-1863-11e5-8184-8c8e03162895.png)
 
 Traditionally, application server retrieves hot data from in-memory database(like Redis) to reduce unnecessary paths. If in-memory database doesn't have specific data, application server gets back to retrieve data from original database.
 
-![hedis2](https://cloud.githubusercontent.com/assets/795839/8270047/6af78870-17fb-11e5-8ad1-f077fb80de1d.png)
+![hedis2](https://cloud.githubusercontent.com/assets/795839/8271949/da395ee4-1863-11e5-8850-de6a613b7da1.png)
 
 Hedis can retrieve data from **ANY** database directly. Application server retrieves hot data from Hedis server, If Hedis server doesn't have specific data, Hedis launch connector to retrieve data from original database.
 
@@ -53,7 +53,7 @@ export LD_LIBRARY_PATH=/usr/lib/jvm/java-7-oracle/jre/lib/amd64/server
 export LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu
 ```
 
-### Run Hedis
+### Run it
 
 ```sh
 redis --hedis hedis.yml

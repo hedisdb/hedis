@@ -11,3 +11,19 @@ Traditionally, application server retrieves hot data from in-memory database(lik
 ![hedis2](https://cloud.githubusercontent.com/assets/795839/8270047/6af78870-17fb-11e5-8ad1-f077fb80de1d.png)
 
 Hedis can retrieve data from **ANY** database directly. Application server retrieves hot data from Hedis server, If Hedis server doesn't have specific data, Hedis launch connector to retrieve data from original database.
+
+## Hedis configuration file
+
+```yaml
+cdh1: # connector name (required)
+  type: hbase # connector type (required)
+  zookeeper: localhost:2181 # other configuration (depends on its type)
+mysqltest:
+  type: mysql
+  username: root
+  password: MY_PASSWORD
+  host: localhost
+  database: hedistest
+otherdb:
+  type: gooddb
+```

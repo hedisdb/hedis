@@ -27,3 +27,15 @@ mysqltest:
 otherdb:
   type: gooddb
 ```
+
+## How to run
+
+```sh
+redis --hedis hedis.yml
+```
+
+## Connectors
+
+* [hedis-connector-template](https://github.com/hedisdb/hedis-connector-template)
+* [hedis-connector-hbase](https://github.com/hedisdb/hedis-connector-hbase)
+* [hedis-connector-mysql](https://github.com/hedisdb/hedis-connector-mysql)

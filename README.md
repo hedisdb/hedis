@@ -77,10 +77,10 @@ GET "cdh1://user:kewang"
 
 # MySQL example:
 #
-# Query one record from "user" table on "mysqltest" connector
+# Query one record at "user" table on "mysqltest" connector
 GET "mysqltest://select * from user limit 1"
 ```
 
-### SCAN
+### SCAN, and so on.
 
 TODO

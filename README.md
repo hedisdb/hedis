@@ -39,3 +39,26 @@ redis --hedis hedis.yml
 * [hedis-connector-template](https://github.com/hedisdb/hedis-connector-template)
 * [hedis-connector-hbase](https://github.com/hedisdb/hedis-connector-hbase)
 * [hedis-connector-mysql](https://github.com/hedisdb/hedis-connector-mysql)
+
+## Commands
+
+### GET
+
+```sh
+GET [connector-name]://[connector-command]
+```
+
+HBase example:
+
+```
+# get "kewang" rowkey at "user" table on "cdh1" connector
+GET "cdh1://user:kewang"
+```
+
+MySQL example:
+
+```
+# Query one record from "user" table on "mysqltest" connector
+GET "mysqltest://select * from user limit 1"
+
+```

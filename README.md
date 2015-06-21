@@ -1,16 +1,16 @@
 # Hedis
 
-This is a modified version of [Redis](https://github.com/antirez/redis), maintaining by [Kewang](https://github.com/kewangtw) now.
+Hedis stands for "Hyper Redis". It can retrieve data from **ANY** database directly and stores to itself.
 
 ## What is Hedis?
 
 ![hedis1](https://cloud.githubusercontent.com/assets/795839/8271948/da04bf9a-1863-11e5-8184-8c8e03162895.png)
 
-Traditionally, application server retrieves hot data from in-memory database(like Redis) to reduce unnecessary paths. If in-memory database doesn't have specific data, application server gets back to retrieve data from original database.
+Traditionally, application server retrieves hot data from in-memory database (like Redis) to reduce unnecessary paths. If in-memory database doesn't have specific data, application server gets back to retrieve data from original database.
 
 ![hedis2](https://cloud.githubusercontent.com/assets/795839/8271949/da395ee4-1863-11e5-8850-de6a613b7da1.png)
 
-Hedis can retrieve data from **ANY** database directly. Application server retrieves hot data from Hedis server, If Hedis server doesn't have specific data, Hedis launch connector to retrieve data from original database.
+Hedis can retrieve data from **ANY** database directly. Application server retrieves hot data from Hedis server, If Hedis server doesn't have specific data, Hedis retrieves data from original database via **ANY** connector.
 
 ## Hedis configuration file
 
@@ -84,3 +84,7 @@ GET "mysqltest://select * from user limit 1"
 ### SCAN, and so on.
 
 TODO
+
+## Related with Redis
+
+This is a modified version of [Redis](https://github.com/antirez/redis), maintaining by [Kewang](https://github.com/kewangtw) now.

@@ -1,5 +1,7 @@
 # Hedis
 
+[![Join the chat at https://gitter.im/hedisdb/hedis](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/hedisdb/hedis?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 Hedis stands for "Hyper Redis". It can retrieve data from **ANY** database directly and stores to itself.
 
 ## What is Hedis?

@@ -71,10 +71,12 @@ GET [connector-name]://[connector-command]
 
 ```sh
 # HBase example:
+#
 # get "kewang" rowkey at "user" table on "cdh1" connector
 GET "cdh1://user:kewang"
 
 # MySQL example:
+#
 # Query one record from "user" table on "mysqltest" connector
 GET "mysqltest://select * from user limit 1"
 ```

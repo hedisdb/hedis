@@ -6,11 +6,11 @@ Hedis stands for "Hyper Redis". It can retrieve data from **ANY** database direc
 
 ## What is Hedis?
 
-![hedis1](https://cloud.githubusercontent.com/assets/795839/8271948/da04bf9a-1863-11e5-8184-8c8e03162895.png)
+![hedis1](https://cloud.githubusercontent.com/assets/795839/8285334/3d6ee5e8-1935-11e5-809e-59bf9afbbe92.png)
 
 Traditionally, application server retrieves hot data from in-memory database (like Redis) to reduce unnecessary paths. If in-memory database doesn't have specific data, application server gets back to retrieve data from original database.
 
-![hedis2](https://cloud.githubusercontent.com/assets/795839/8271949/da395ee4-1863-11e5-8850-de6a613b7da1.png)
+![hedis2](https://cloud.githubusercontent.com/assets/795839/8285335/3d967ce8-1935-11e5-8b3b-0194d90b9e4d.png)
 
 Hedis can retrieve data from **ANY** database directly. Application server retrieves hot data from Hedis server, If Hedis server doesn't have specific data, Hedis retrieves data from original database via **ANY** connector.
 

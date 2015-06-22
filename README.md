@@ -4,7 +4,7 @@
 
 Hedis stands for "Hyper Redis". It can retrieve data from **ANY** database directly and stores to itself.
 
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=aAgJaqvgqLU" target="_blank"><img src="http://img.youtube.com/vi/aAgJaqvgqLU/0.jpg" alt="Hedis DEMO" width="640" height="480" /></a>
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=aAgJaqvgqLU" target="_blank"><img src="https://cloud.githubusercontent.com/assets/795839/8286120/5b23199c-193a-11e5-844f-27d5e4e53a11.jpg" alt="Hedis DEMO" width="640" height="480" /></a>
 
 ## What is Hedis?
 

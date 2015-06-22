@@ -6,8 +6,6 @@ Hedis stands for "Hyper Redis". It can retrieve data from **ANY** database direc
 
 <a href="http://www.youtube.com/watch?feature=player_embedded&v=aAgJaqvgqLU" target="_blank"><img src="http://img.youtube.com/vi/aAgJaqvgqLU/0.jpg" alt="Hedis DEMO" width="640" height="480" /></a>
 
-[![Hedis DEMO](http://img.youtube.com/vi/aAgJaqvgqLU/0.jpg)](http://www.youtube.com/watch?v=aAgJaqvgqLU)
-
 ## What is Hedis?
 
 ![hedis1](https://cloud.githubusercontent.com/assets/795839/8285334/3d6ee5e8-1935-11e5-809e-59bf9afbbe92.png)

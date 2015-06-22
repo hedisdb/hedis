@@ -75,7 +75,7 @@ GET [CONNECTOR-NAME]://[CONNECTOR-COMMAND]
 # HBase example:
 #
 # get "kewang" rowkey at "user" table on "cdh1" connector
-GET "cdh1://user:kewang"
+GET "cdh1://user@kewang"
 
 # MySQL example:
 #

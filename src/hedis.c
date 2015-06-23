@@ -5,7 +5,7 @@
 #include <yaml.h>
 #include <dlfcn.h>
 
-// dbname://anything
+// [CONNECTOR-NAME]://[CONNECTOR-COMMAND]
 #define HEDIS_PROTOCOL_PATTERN "(\\w+)://(.+)"
 #define MAX_ERROR_MSG 0x1000
 

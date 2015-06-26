@@ -159,14 +159,14 @@ int getGenericCommand(redisClient *c) {
     const char * find_text = c->argv[1]->ptr;
 
     if ((o = lookupKeyRead(c->db,c->argv[1])) == NULL) {
-        char **str = parse_hedis_protocol(find_text);
+        hedisProtocol *protocol = parse_hedis_protocol(find_text);
 
-        if (str == NULL) {
+        if (protocol->command == NULL) {
             addReply(c,shared.nullbulk);
             return REDIS_OK;
         }
 
-        const char * value = get_hedis_value(str);
+        const char * value = get_hedis_value(protocol->command);
 
         if (value == NULL) {
             addReply(c,shared.nullbulk);

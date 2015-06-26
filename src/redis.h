@@ -1008,8 +1008,16 @@ typedef struct {
     dictEntry *de;
 } hashTypeIterator;
 
+typedef struct {
+	int invalidate;
+	char **command;
+} hedisProtocol;
+
 #define REDIS_HASH_KEY 1
 #define REDIS_HASH_VALUE 2
+
+#define HEDIS_INVALIDATE_PRESERVE 1
+#define HEDIS_INVALIDATE_MUTATION 2
 
 /*-----------------------------------------------------------------------------
  * Extern declarations
@@ -1597,4 +1605,4 @@ void redisLogHexDump(int level, char *descr, void *value, size_t len);
 int parse_hedis_config(const char * filename);
 void load_hedis_connectors();
 char *get_hedis_value(const char ** str);
-char **parse_hedis_protocol(const char * to_match);
+hedisProtocol *parse_hedis_protocol(const char * to_match);

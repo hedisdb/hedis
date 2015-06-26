@@ -5,8 +5,11 @@
 #include <yaml.h>
 #include <dlfcn.h>
 
-// [CONNECTOR-NAME]://[CONNECTOR-COMMAND]
-#define HEDIS_PROTOCOL_PATTERN "(\\w+)://(.+)"
+// [CONNECTOR-NAME]://(!)[CONNECTOR-COMMAND]
+#define HEDIS_PROTOCOL_PATTERN "(\\w+)(://!?)(.+)"
+#define HEDIS_PROTOCOL_NAME_INDEX 0
+#define HEDIS_PROTOCOL_INVALIDATE_INDEX 1
+#define HEDIS_PROTOCOL_COMMAND_INDEX 2
 #define MAX_ERROR_MSG 0x1000
 
 hedisConnectorList *hedis_connector_list;
@@ -23,7 +26,7 @@ void print_hedis_connector(){
 
 char *get_hedis_value(const char **str) {
     for (int i = 0; i < hedis_connector_list->connector_count; i++) {
-        if (!strcasecmp(hedis_connector_list->connectors[i]->name, str[0])) {
+        if (!strcasecmp(hedis_connector_list->connectors[i]->name, str[HEDIS_PROTOCOL_NAME_INDEX])) {
             void *lib = hedis_connector_list->connectors[i]->lib;
 
             // load library fail
@@ -33,7 +36,7 @@ char *get_hedis_value(const char **str) {
 
             char *(*get_value)(char *) = dlsym(lib, "get_value");
 
-            return (*get_value)(str[1]);
+            return (*get_value)(str[HEDIS_PROTOCOL_COMMAND_INDEX]);
         }
     }
 
@@ -258,7 +261,7 @@ int count_connectors(FILE *file) {
     return counts;
 }
 
-char **parse_hedis_protocol(const char * to_match) {
+hedisProtocol *parse_hedis_protocol(const char * to_match) {
     regex_t * r = malloc(sizeof(regex_t));
 
     int status = regcomp(r, HEDIS_PROTOCOL_PATTERN, REG_EXTENDED | REG_NEWLINE);
@@ -273,7 +276,7 @@ char **parse_hedis_protocol(const char * to_match) {
         return NULL;
     }
 
-    char **str = malloc(sizeof(char *) * 2);
+    char **str = malloc(sizeof(char *) * 3);
 
     /* "P" is a pointer into the string which points to the end of the
      *        previous match. */
@@ -314,5 +317,15 @@ char **parse_hedis_protocol(const char * to_match) {
 
     p += m[0].rm_eo;
 
-    return str;
+    hedisProtocol *protocol = malloc(sizeof(hedisProtocol));
+
+    if (!strcasecmp(str[1], "://")) {
+        protocol->invalidate = HEDIS_INVALIDATE_PRESERVE;
+    } else if (!strcasecmp(str[1], "://!")) {
+        protocol->invalidate = HEDIS_INVALIDATE_MUTATION;
+    }
+
+    protocol->command = str;
+
+    return protocol;
 }

@@ -68,7 +68,7 @@ redis-server --hedis hedis.yml
 ### GET
 
 ```sh
-GET [CONNECTOR-NAME]://[CONNECTOR-COMMAND]
+GET [CONNECTOR-NAME]://(INVALIDATE-SIGN)[CONNECTOR-COMMAND]
 ```
 
 #### Example
@@ -78,6 +78,11 @@ GET [CONNECTOR-NAME]://[CONNECTOR-COMMAND]
 #
 # get "kewang" rowkey at "user" table on "cdh1" connector
 GET "cdh1://user@kewang"
+
+# HBase example:
+#
+# get "kewang" rowkey at "user" table on "cdh1" connector, again
+GET "cdh1://!user@kewang"
 
 # MySQL example:
 #

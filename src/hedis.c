@@ -319,9 +319,9 @@ hedisProtocol *parse_hedis_protocol(const char * to_match) {
 
     hedisProtocol *protocol = malloc(sizeof(hedisProtocol));
 
-    if (!strcasecmp(str[1], "://")) {
+    if (!strcasecmp(str[HEDIS_PROTOCOL_INVALIDATE_INDEX], "://")) {
         protocol->invalidate = HEDIS_INVALIDATE_PRESERVE;
-    } else if (!strcasecmp(str[1], "://!")) {
+    } else if (!strcasecmp(str[HEDIS_PROTOCOL_INVALIDATE_INDEX], "://!")) {
         protocol->invalidate = HEDIS_INVALIDATE_MUTATION;
     }
 

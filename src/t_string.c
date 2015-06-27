@@ -177,11 +177,19 @@ int getGenericCommand(redisClient *c) {
 
         hedisValue = tryObjectEncoding(hedisValue);
 
-        setKey(c->db,c->argv[1],hedisValue);
+        char * key = malloc(sizeof(char) * (strlen(find_text) - 1));
+
+        sprintf(key,"%s://%s",protocol->command[0],protocol->command[2]);
+
+        robj *hedisKey = createStringObject(key, strlen(key));
+
+        hedisKey = tryObjectEncoding(hedisKey);
+
+        setKey(c->db,hedisKey,hedisValue);
 
         server.dirty++;
 
-        notifyKeyspaceEvent(REDIS_NOTIFY_STRING,"set",c->argv[1],c->db->id);
+        notifyKeyspaceEvent(REDIS_NOTIFY_STRING,"set",hedisKey,c->db->id);
 
         addReplyBulk(c,hedisValue);
         return REDIS_OK;

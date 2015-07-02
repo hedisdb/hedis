@@ -68,10 +68,13 @@ void load_connector(hedisConnector *connector) {
 
     dlerror();
 
-    setenv("CLASSPATH", "$CLASSPATH:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/async-1.4.0.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/asynchbase-1.5.0-libhbase-20140311.193218-1.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/commons-configuration-1.6.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/commons-lang-2.5.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/commons-logging-1.1.1.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/hadoop-core-1.0.4.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/hbase-0.94.17.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/libhbase-1.0-SNAPSHOT.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/log4j-1.2.17.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/netty-3.8.0.Final.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/protobuf-java-2.5.0.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/slf4j-api-1.7.5.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/slf4j-log4j12-1.7.5.jar:/home/kewang/git/libhbase/target/libhbase-1.0-SNAPSHOT/lib/zookeeper-3.4.5.jar", 1);
-    setenv("HBASE_LIB_DIR", "/home/kewang/hbase/lib", 1);
-    setenv("HBASE_CONF_DIR", "/home/kewang/hbase/conf", 1);
-    setenv("LD_LIBRARY_PATH", "$LD_LIBRARY_PATH:/usr/lib/jvm/java-7-oracle/jre/lib/amd64/server", 1);
+    for (int i = 0; i < connector->env_entry_count; i++) {
+        hedisConfigEntry *envEntry = connector->env_entries[i];
+
+        redisLog(REDIS_WARNING, "export %s=%s", envEntry->key, envEntry->value);
+
+        setenv(envEntry->key, envEntry->value, 1);
+    }
 
     int (*init)(hedisConfigEntry **, int) = dlsym(lib, "init");
 
@@ -110,9 +113,8 @@ int parse_hedis_config(const char * filename) {
     for (int i = 0; i < connector_count; i++) {
         hedis_connector_list->connectors[i] = malloc(sizeof(hedisConnector));
 
-        hedis_connector_list->connectors[i]->name = malloc(sizeof(char) * 30);
-        hedis_connector_list->connectors[i]->type = malloc(sizeof(char) * 30);
         hedis_connector_list->connectors[i]->entries = malloc(sizeof(hedisConfigEntry) * 10);
+        hedis_connector_list->connectors[i]->env_entries = malloc(sizeof(hedisConfigEntry) * 10);
     }
 
     if (!yaml_parser_initialize(&parser)) {
@@ -121,9 +123,11 @@ int parse_hedis_config(const char * filename) {
 
     yaml_parser_set_input_file(&parser, file);
 
-    int token_type = -1;
+    yaml_token_type_t token_type = YAML_NO_TOKEN;
     int connector_index = -1;
     int entry_index = -1;
+    int env_entry_index = -1;
+    int env_type = -1;
     hedisConfigEntry *entry;
 
     do {
@@ -148,17 +152,14 @@ int parse_hedis_config(const char * filename) {
             if (parser.indent != 0) {
                 entry = malloc(sizeof(hedisConfigEntry));
 
-                entry->key = malloc(sizeof(char) * 30);
-                entry->value = malloc(sizeof(char) * 30);
-
-                token_type = 0;
+                token_type = YAML_KEY_TOKEN;
             }
 
             break;
         case YAML_VALUE_TOKEN:
             // printf("(Value token) ");
 
-            token_type = 1;
+            token_type = YAML_VALUE_TOKEN;
 
             break;
         /* Block delimeters */
@@ -186,22 +187,43 @@ int parse_hedis_config(const char * filename) {
                 connector_index++;
 
                 entry_index = -1;
+                env_entry_index = -1;
+                env_type = -1;
+
+                hedis_connector_list->connectors[connector_index]->name = malloc(sizeof(char) * strlen(value));
 
                 strcpy(hedis_connector_list->connectors[connector_index]->name, value);
             } else {
-                if (token_type == 0) {
-                    strcpy(entry->key, value);
-                } else if (token_type == 1) {
+                if (token_type == YAML_KEY_TOKEN) {
+                    if (strcasecmp(value, "env") || env_type == 1) {
+                        entry->key = malloc(sizeof(char) * strlen(value));
+
+                        strcpy(entry->key, value);
+                    } else {
+                        env_type = 1;
+                    }
+                } else if (token_type == YAML_VALUE_TOKEN) {
                     if (!strcasecmp(entry->key, "type")) {
+                        hedis_connector_list->connectors[connector_index]->type = malloc(sizeof(char) * strlen(value));
+
                         strcpy(hedis_connector_list->connectors[connector_index]->type, value);
                     }
 
+                    entry->value = malloc(sizeof(char) * strlen(value));
+
                     strcpy(entry->value, value);
 
-                    entry_index++;
+                    if (env_type == 1) {
+                        env_entry_index++;
 
-                    hedis_connector_list->connectors[connector_index]->entries[entry_index] = entry;
-                    hedis_connector_list->connectors[connector_index]->entry_count = entry_index + 1;
+                        hedis_connector_list->connectors[connector_index]->env_entries[env_entry_index] = entry;
+                        hedis_connector_list->connectors[connector_index]->env_entry_count = env_entry_index + 1;
+                    } else {
+                        entry_index++;
+
+                        hedis_connector_list->connectors[connector_index]->entries[entry_index] = entry;
+                        hedis_connector_list->connectors[connector_index]->entry_count = entry_index + 1;
+                    }
                 }
             }
 

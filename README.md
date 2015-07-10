@@ -24,7 +24,7 @@ Hedis can retrieve data from **ANY** database directly. Application server retri
 
 ### Requests (higher is better)
 
-![request_benchmark](https://cloud.githubusercontent.com/assets/795839/8618736/6e68b48c-2743-11e5-85b2-969cf5ff8868.png)
+![request_benchmark](https://cloud.githubusercontent.com/assets/795839/8619335/d646daa2-2748-11e5-9c1b-c3cac743b3ea.png)
 
 ## Hedis configuration file
 

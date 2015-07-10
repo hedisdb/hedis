@@ -182,7 +182,7 @@ int getGenericCommand(redisClient *c) {
             return REDIS_OK;
         }
 
-        const char * value = get_hedis_value(protocol->command);
+        char * value = get_hedis_value(protocol->command);
 
         if (value == NULL) {
             addReply(c,shared.nullbulk);
@@ -193,7 +193,7 @@ int getGenericCommand(redisClient *c) {
 
         hedisValue = tryObjectEncoding(hedisValue);
 
-        char * key = malloc(sizeof(char) * (strlen(find_text) - 1));
+        char * key = zmalloc(sizeof(char) * (strlen(find_text) - 1));
 
         sprintf(key,"%s://%s",protocol->command[0],protocol->command[2]);
 

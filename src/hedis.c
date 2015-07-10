@@ -24,7 +24,7 @@ void print_hedis_connector(){
     }
 }
 
-char *get_hedis_value(const char **str) {
+char *get_hedis_value(char **str) {
     for (int i = 0; i < hedis_connector_list->connector_count; i++) {
         if (!strcasecmp(hedis_connector_list->connectors[i]->name, str[HEDIS_PROTOCOL_NAME_INDEX])) {
             void *lib = hedis_connector_list->connectors[i]->lib;
@@ -34,19 +34,13 @@ char *get_hedis_value(const char **str) {
                 return NULL;
             }
 
-            char *(*get_value)(char *) = dlsym(lib, "get_value");
+            char *(*get_value)(const char *) = dlsym(lib, "get_value");
 
             return (*get_value)(str[HEDIS_PROTOCOL_COMMAND_INDEX]);
         }
     }
 
     return NULL;
-}
-
-void load_hedis_connectors() {
-    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
-        load_connector(hedis_connector_list->connectors[i]);
-    }
 }
 
 void load_connector(hedisConnector *connector) {
@@ -91,6 +85,51 @@ void load_connector(hedisConnector *connector) {
     connector->lib = lib;
 }
 
+void load_hedis_connectors() {
+    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
+        load_connector(hedis_connector_list->connectors[i]);
+    }
+}
+
+int count_connectors(FILE *file) {
+    yaml_parser_t parser;
+    yaml_token_t token;
+    int counts = 0;
+
+    /* Initialize parser */
+    if (!yaml_parser_initialize(&parser)) {
+        fputs("Failed to initialize parser!\n", stderr);
+    }
+
+    if (file == NULL) {
+        fputs("Failed to open file!\n", stderr);
+    }
+
+    /* Set input file */
+    yaml_parser_set_input_file(&parser, file);
+
+    /* BEGIN new code */
+    // calculate connector counts
+    do {
+        yaml_parser_scan(&parser, &token);
+
+        if (token.type == YAML_KEY_TOKEN && parser.indent == 0) {
+            counts++;
+        }
+
+        if (token.type != YAML_STREAM_END_TOKEN) {
+            yaml_token_delete(&token);
+        }
+    } while (token.type != YAML_STREAM_END_TOKEN);
+
+    /* Cleanup */
+    yaml_parser_delete(&parser);
+
+    fseek(file, 0, SEEK_SET);
+
+    return counts;
+}
+
 int parse_hedis_config(const char * filename) {
     FILE *file = fopen(filename, "r");
 
@@ -128,12 +167,13 @@ int parse_hedis_config(const char * filename) {
     int entry_index = -1;
     int env_entry_index = -1;
     int env_type = -1;
-    hedisConfigEntry *entry;
+    hedisConfigEntry *entry = NULL;
 
     do {
         yaml_parser_scan(&parser, &token);
 
-        char *value;
+        yaml_char_t *value;
+        size_t value_len;
 
         switch (token.type) {
         /* Stream start/end */
@@ -182,6 +222,7 @@ int parse_hedis_config(const char * filename) {
             break;
         case YAML_SCALAR_TOKEN:
             value = token.data.scalar.value;
+            value_len = token.data.scalar.length;
 
             if (parser.indent == 0) {
                 connector_index++;
@@ -190,28 +231,28 @@ int parse_hedis_config(const char * filename) {
                 env_entry_index = -1;
                 env_type = -1;
 
-                hedis_connector_list->connectors[connector_index]->name = malloc(sizeof(char) * strlen(value));
+                hedis_connector_list->connectors[connector_index]->name = malloc(sizeof(char) * value_len);
 
-                strcpy(hedis_connector_list->connectors[connector_index]->name, value);
+                strcpy(hedis_connector_list->connectors[connector_index]->name, (const char *)value);
             } else {
                 if (token_type == YAML_KEY_TOKEN) {
-                    if (strcasecmp(value, "env") || env_type == 1) {
-                        entry->key = malloc(sizeof(char) * strlen(value));
+                    if (strcasecmp((const char *)value, "env") || env_type == 1) {
+                        entry->key = malloc(sizeof(char) * value_len);
 
-                        strcpy(entry->key, value);
+                        strcpy(entry->key, (const char *)value);
                     } else {
                         env_type = 1;
                     }
                 } else if (token_type == YAML_VALUE_TOKEN) {
                     if (!strcasecmp(entry->key, "type")) {
-                        hedis_connector_list->connectors[connector_index]->type = malloc(sizeof(char) * strlen(value));
+                        hedis_connector_list->connectors[connector_index]->type = malloc(sizeof(char) * value_len);
 
-                        strcpy(hedis_connector_list->connectors[connector_index]->type, value);
+                        strcpy(hedis_connector_list->connectors[connector_index]->type, (const char *)value);
                     }
 
-                    entry->value = malloc(sizeof(char) * strlen(value));
+                    entry->value = malloc(sizeof(char) * value_len);
 
-                    strcpy(entry->value, value);
+                    strcpy(entry->value, (const char *)value);
 
                     if (env_type == 1) {
                         env_entry_index++;
@@ -247,45 +288,6 @@ int parse_hedis_config(const char * filename) {
     fclose(file);
 
     return 0;
-}
-
-int count_connectors(FILE *file) {
-    yaml_parser_t parser;
-    yaml_token_t token;
-    int counts = 0;
-
-    /* Initialize parser */
-    if (!yaml_parser_initialize(&parser)) {
-        fputs("Failed to initialize parser!\n", stderr);
-    }
-
-    if (file == NULL) {
-        fputs("Failed to open file!\n", stderr);
-    }
-
-    /* Set input file */
-    yaml_parser_set_input_file(&parser, file);
-
-    /* BEGIN new code */
-    // calculate connector counts
-    do {
-        yaml_parser_scan(&parser, &token);
-
-        if (token.type == YAML_KEY_TOKEN && parser.indent == 0) {
-            counts++;
-        }
-
-        if (token.type != YAML_STREAM_END_TOKEN) {
-            yaml_token_delete(&token);
-        }
-    } while (token.type != YAML_STREAM_END_TOKEN);
-
-    /* Cleanup */
-    yaml_parser_delete(&parser);
-
-    fseek(file, 0, SEEK_SET);
-
-    return counts;
 }
 
 hedisProtocol *parse_hedis_protocol(const char * to_match) {

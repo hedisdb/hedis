@@ -22,7 +22,7 @@ Hedis can retrieve data from **ANY** database directly. Application server retri
 
 ![latency_benchmark](https://cloud.githubusercontent.com/assets/795839/8618735/6e351d16-2743-11e5-9828-40813b364997.png)
 
-### Requests (high is better)
+### Requests (higher is better)
 
 ![request_benchmark](https://cloud.githubusercontent.com/assets/795839/8618736/6e68b48c-2743-11e5-85b2-969cf5ff8868.png)
 

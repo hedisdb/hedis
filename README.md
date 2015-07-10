@@ -16,6 +16,16 @@ Traditionally, application server retrieves hot data from in-memory database (li
 
 Hedis can retrieve data from **ANY** database directly. Application server retrieves hot data from Hedis server, If Hedis server doesn't have specific data, Hedis retrieves data from original database via **ANY** connector.
 
+## Benchmark
+
+### Latency
+
+![latency_benchmark](https://cloud.githubusercontent.com/assets/795839/8618735/6e351d16-2743-11e5-9828-40813b364997.png)
+
+### Requests
+
+![request_benchmark](https://cloud.githubusercontent.com/assets/795839/8618736/6e68b48c-2743-11e5-85b2-969cf5ff8868.png)
+
 ## Hedis configuration file
 
 ```yaml

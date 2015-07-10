@@ -292,6 +292,8 @@ struct redisCommand redisCommandTable[] = {
 
 struct evictionPoolEntry *evictionPoolAlloc(void);
 
+int hedis_load_status;
+
 /*============================ Utility functions ============================ */
 
 /* Low level logging. To use only for very big messages, otherwise
@@ -3770,6 +3772,7 @@ int main(int argc, char **argv) {
     dictSetHashFunctionSeed(tv.tv_sec^tv.tv_usec^getpid());
     server.sentinel_mode = checkForSentinelMode(argc,argv);
     initServerConfig();
+    hedis_load_status = -1;
 
     /* We need to init sentinel right now as parsing the configuration file
      * in sentinel mode will have the effect of populating the sentinel

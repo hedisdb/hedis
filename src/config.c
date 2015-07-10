@@ -96,6 +96,8 @@ clientBufferLimitsConfig clientBufferLimitsDefaults[REDIS_CLIENT_TYPE_COUNT] = {
     {1024*1024*32, 1024*1024*8, 60}  /* pubsub */
 };
 
+int hedis_load_status;
+
 /*-----------------------------------------------------------------------------
  * Enum access functions
  *----------------------------------------------------------------------------*/
@@ -604,11 +606,11 @@ void loadServerConfigFromString(char *config) {
                 if (err) goto loaderr;
             }
         } else if (!strcasecmp(argv[0],"hedis")) {
-            int status = parse_hedis_config(argv[1]);
+            hedis_load_status = parse_hedis_config(argv[1]);
 
             load_hedis_connectors();
 
-            if (status == 0) {
+            if (hedis_load_status == 0) {
                 redisLog(REDIS_NOTICE,"Already load Hedis configuration");
             }
         } else {

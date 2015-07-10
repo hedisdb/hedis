@@ -64,6 +64,8 @@ static int checkStringLength(redisClient *c, long long size) {
 #define REDIS_SET_EX (1<<2)     /* Set if time in seconds is given */
 #define REDIS_SET_PX (1<<3)     /* Set if time in ms in given */
 
+int hedis_load_status;
+
 void setGenericCommand(redisClient *c, int flags, robj *key, robj *val, robj *expire, int unit, robj *ok_reply, robj *abort_reply) {
     long long milliseconds = 0; /* initialized to avoid any harmness warning */
 
@@ -156,6 +158,20 @@ void psetexCommand(redisClient *c) {
 
 int getGenericCommand(redisClient *c) {
     robj *o;
+
+    if (hedis_load_status != 0) {
+        if ((o = lookupKeyReadOrReply(c,c->argv[1],shared.nullbulk)) == NULL)
+            return REDIS_OK;
+
+        if (o->type != REDIS_STRING) {
+            addReply(c,shared.wrongtypeerr);
+            return REDIS_ERR;
+        } else {
+            addReplyBulk(c,o);
+            return REDIS_OK;
+        }
+    }
+
     const char * find_text = c->argv[1]->ptr;
 
     if ((o = lookupKeyRead(c->db,c->argv[1])) == NULL) {

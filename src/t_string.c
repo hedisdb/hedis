@@ -177,7 +177,7 @@ int getGenericCommand(redisClient *c) {
     if ((o = lookupKeyRead(c->db,c->argv[1])) == NULL) {
         hedisProtocol *protocol = parse_hedis_protocol(find_text);
 
-        if (protocol->command == NULL) {
+        if (protocol == NULL || protocol->command == NULL) {
             addReply(c,shared.nullbulk);
             return REDIS_OK;
         }

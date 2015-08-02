@@ -12,22 +12,22 @@
 #define HEDIS_PROTOCOL_COMMAND_INDEX 2
 #define MAX_ERROR_MSG 0x1000
 
-hedisConnectorList *hedis_connector_list;
+hedisConnectorList hedis_connector_list;
 
 void print_hedis_connector(){
-    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
-        printf("hedis_connector_list->connectors[%d]->name: %s\n", i, hedis_connector_list->connectors[i]->name);
+    for (int i = 0; i < hedis_connector_list.connector_count; i++) {
+        printf("hedis_connector_list.connectors[%d]->name: %s\n", i, hedis_connector_list.connectors[i]->name);
 
-        for (int j = 0; j < hedis_connector_list->connectors[i]->entry_count; j++) {
-            printf("key: %s, value: %s\n", hedis_connector_list->connectors[i]->entries[j]->key, hedis_connector_list->connectors[i]->entries[j]->value);
+        for (int j = 0; j < hedis_connector_list.connectors[i]->entry_count; j++) {
+            printf("key: %s, value: %s\n", hedis_connector_list.connectors[i]->entries[j]->key, hedis_connector_list.connectors[i]->entries[j]->value);
         }
     }
 }
 
 char *get_hedis_value(char **str) {
-    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
-        if (!strcasecmp(hedis_connector_list->connectors[i]->name, str[HEDIS_PROTOCOL_NAME_INDEX])) {
-            void *lib = hedis_connector_list->connectors[i]->lib;
+    for (int i = 0; i < hedis_connector_list.connector_count; i++) {
+        if (!strcasecmp(hedis_connector_list.connectors[i]->name, str[HEDIS_PROTOCOL_NAME_INDEX])) {
+            void *lib = hedis_connector_list.connectors[i]->lib;
 
             // load library fail
             if (lib == NULL) {
@@ -86,8 +86,8 @@ void load_connector(hedisConnector *connector) {
 }
 
 void load_hedis_connectors() {
-    for (int i = 0; i < hedis_connector_list->connector_count; i++) {
-        load_connector(hedis_connector_list->connectors[i]);
+    for (int i = 0; i < hedis_connector_list.connector_count; i++) {
+        load_connector(hedis_connector_list.connectors[i]);
     }
 }
 
@@ -142,18 +142,16 @@ int parse_hedis_config(const char * filename) {
     yaml_parser_t parser;
     yaml_token_t token;
 
-    int connector_count = count_connectors(file);
+    size_t connector_count = count_connectors(file);
 
-    hedis_connector_list = malloc(sizeof(hedisConnectorList *));
+    hedis_connector_list.connector_count = connector_count;
+    hedis_connector_list.connectors = malloc(sizeof(hedisConnector *) * connector_count);
 
-    hedis_connector_list->connector_count = connector_count;
-    hedis_connector_list->connectors = malloc(sizeof(hedisConnector *) * connector_count);
+    for (size_t i = 0; i < connector_count; i++) {
+        hedis_connector_list.connectors[i] = malloc(sizeof(hedisConnector));
 
-    for (int i = 0; i < connector_count; i++) {
-        hedis_connector_list->connectors[i] = malloc(sizeof(hedisConnector));
-
-        hedis_connector_list->connectors[i]->entries = malloc(sizeof(hedisConfigEntry) * 10);
-        hedis_connector_list->connectors[i]->env_entries = malloc(sizeof(hedisConfigEntry) * 10);
+        hedis_connector_list.connectors[i]->entries = malloc(sizeof(hedisConfigEntry) * 10);
+        hedis_connector_list.connectors[i]->env_entries = malloc(sizeof(hedisConfigEntry) * 10);
     }
 
     if (!yaml_parser_initialize(&parser)) {
@@ -231,9 +229,9 @@ int parse_hedis_config(const char * filename) {
                 env_entry_index = -1;
                 env_type = -1;
 
-                hedis_connector_list->connectors[connector_index]->name = malloc(sizeof(char) * value_len);
+                hedis_connector_list.connectors[connector_index]->name = malloc(sizeof(char) * value_len);
 
-                strcpy(hedis_connector_list->connectors[connector_index]->name, (const char *)value);
+                strcpy(hedis_connector_list.connectors[connector_index]->name, (const char *)value);
             } else {
                 if (token_type == YAML_KEY_TOKEN) {
                     if (strcasecmp((const char *)value, "env") || env_type == 1) {
@@ -245,9 +243,9 @@ int parse_hedis_config(const char * filename) {
                     }
                 } else if (token_type == YAML_VALUE_TOKEN) {
                     if (!strcasecmp(entry->key, "type")) {
-                        hedis_connector_list->connectors[connector_index]->type = malloc(sizeof(char) * value_len);
+                        hedis_connector_list.connectors[connector_index]->type = malloc(sizeof(char) * value_len);
 
-                        strcpy(hedis_connector_list->connectors[connector_index]->type, (const char *)value);
+                        strcpy(hedis_connector_list.connectors[connector_index]->type, (const char *)value);
                     }
 
                     entry->value = malloc(sizeof(char) * value_len);
@@ -257,13 +255,13 @@ int parse_hedis_config(const char * filename) {
                     if (env_type == 1) {
                         env_entry_index++;
 
-                        hedis_connector_list->connectors[connector_index]->env_entries[env_entry_index] = entry;
-                        hedis_connector_list->connectors[connector_index]->env_entry_count = env_entry_index + 1;
+                        hedis_connector_list.connectors[connector_index]->env_entries[env_entry_index] = entry;
+                        hedis_connector_list.connectors[connector_index]->env_entry_count = env_entry_index + 1;
                     } else {
                         entry_index++;
 
-                        hedis_connector_list->connectors[connector_index]->entries[entry_index] = entry;
-                        hedis_connector_list->connectors[connector_index]->entry_count = entry_index + 1;
+                        hedis_connector_list.connectors[connector_index]->entries[entry_index] = entry;
+                        hedis_connector_list.connectors[connector_index]->entry_count = entry_index + 1;
                     }
                 }
             }

@@ -359,11 +359,5 @@ hedisProtocol *parse_hedis_protocol(const char * to_match) {
     regfree(r);
     free(r);
 
-    for (int i = 0; i < 3; i++) {
-        free(str[i]);
-    }
-
-    free(str);
-
     return protocol;
 }

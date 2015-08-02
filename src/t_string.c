@@ -208,6 +208,12 @@ int getGenericCommand(redisClient *c) {
         notifyKeyspaceEvent(REDIS_NOTIFY_STRING,"set",hedisKey,c->db->id);
 
         addReplyBulk(c,hedisValue);
+
+        free(protocol->command[0]);
+        free(protocol->command[1]);
+        free(protocol->command[2]);
+        free(protocol);
+
         return REDIS_OK;
     }
 

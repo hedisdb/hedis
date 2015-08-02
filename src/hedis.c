@@ -354,5 +354,8 @@ hedisProtocol *parse_hedis_protocol(const char * to_match) {
 
     protocol->command = str;
 
+    regfree(r);
+    free(r);
+
     return protocol;
 }

@@ -83,6 +83,8 @@ void load_connector(hedisConnector *connector) {
     }
 
     connector->lib = lib;
+
+    free(lib_name);
 }
 
 void load_hedis_connectors() {
@@ -356,6 +358,12 @@ hedisProtocol *parse_hedis_protocol(const char * to_match) {
 
     regfree(r);
     free(r);
+
+    for (int i = 0; i < 3; i++) {
+        free(str[i]);
+    }
+
+    free(str);
 
     return protocol;
 }

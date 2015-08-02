@@ -336,7 +336,7 @@ hedisProtocol *parse_hedis_protocol(const char * to_match) {
         if (i != 0) {
             int size = finish - start;
 
-            str[i - 1] = malloc(sizeof(char) * size);
+            str[i - 1] = malloc(sizeof(char) * (size + 1));
 
             sprintf(str[i - 1], "%.*s", size, to_match + start);
         }

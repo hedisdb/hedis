@@ -229,13 +229,13 @@ int parse_hedis_config(const char * filename) {
                 env_entry_index = -1;
                 env_type = -1;
 
-                hedis_connector_list.connectors[connector_index]->name = malloc(sizeof(char) * value_len);
+                hedis_connector_list.connectors[connector_index]->name = malloc(sizeof(char) * (value_len + 1));
 
                 strcpy(hedis_connector_list.connectors[connector_index]->name, (const char *)value);
             } else {
                 if (token_type == YAML_KEY_TOKEN) {
                     if (strcasecmp((const char *)value, "env") || env_type == 1) {
-                        entry->key = malloc(sizeof(char) * value_len);
+                        entry->key = malloc(sizeof(char) * (value_len + 1));
 
                         strcpy(entry->key, (const char *)value);
                     } else {
@@ -243,12 +243,12 @@ int parse_hedis_config(const char * filename) {
                     }
                 } else if (token_type == YAML_VALUE_TOKEN) {
                     if (!strcasecmp(entry->key, "type")) {
-                        hedis_connector_list.connectors[connector_index]->type = malloc(sizeof(char) * value_len);
+                        hedis_connector_list.connectors[connector_index]->type = malloc(sizeof(char) * (value_len + 1));
 
                         strcpy(hedis_connector_list.connectors[connector_index]->type, (const char *)value);
                     }
 
-                    entry->value = malloc(sizeof(char) * value_len);
+                    entry->value = malloc(sizeof(char) * (value_len + 1));
 
                     strcpy(entry->value, (const char *)value);
 

@@ -11,6 +11,7 @@
 #define HEDIS_PROTOCOL_INVALIDATE_INDEX 1
 #define HEDIS_PROTOCOL_COMMAND_INDEX 2
 #define MAX_ERROR_MSG 0x1000
+#define DOWNLOAD_COMMAND "curl -o connectors/connector-%s.tar.gz -L https://github.com/hedisdb/hedis-connector-%s/archive/master.tar.gz"
 
 hedisConnectorList hedis_connector_list;
 
@@ -44,6 +45,16 @@ char *get_hedis_value(char **str) {
 }
 
 int download_connector(hedisConnector *connector) {
+    char *command;
+
+    command = malloc(sizeof(char) * (strlen(DOWNLOAD_COMMAND) + strlen(connector->type) * 2 + 5));
+
+    sprintf(command, DOWNLOAD_COMMAND, connector->type, connector->type);
+
+    system(command);
+}
+
+int build_connector(hedisConnector *connector) {
     
 }
 
@@ -92,8 +103,12 @@ void load_connector(hedisConnector *connector) {
 }
 
 void load_hedis_connectors() {
+    system("mkdir connectors");
+
     for (int i = 0; i < hedis_connector_list.connector_count; i++) {
         download_connector(hedis_connector_list.connectors[i]);
+
+        build_connector(hedis_connector_list.connectors[i]);
 
         load_connector(hedis_connector_list.connectors[i]);
     }

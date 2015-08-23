@@ -11,3 +11,7 @@ tar zxvf connectors/connector-$CONNECTOR_NAME.tar.gz -C connectors
 cd connectors/hedis-connector-$CONNECTOR_NAME-master
 
 make pre_install
+make
+sudo make install
+
+cd ../../

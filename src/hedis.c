@@ -43,6 +43,10 @@ char *get_hedis_value(char **str) {
     return NULL;
 }
 
+int download_connector(hedisConnector *connector) {
+    
+}
+
 void load_connector(hedisConnector *connector) {
     char *lib_name;
 
@@ -89,6 +93,8 @@ void load_connector(hedisConnector *connector) {
 
 void load_hedis_connectors() {
     for (int i = 0; i < hedis_connector_list.connector_count; i++) {
+        download_connector(hedis_connector_list.connectors[i]);
+
         load_connector(hedis_connector_list.connectors[i]);
     }
 }

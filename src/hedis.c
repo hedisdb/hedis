@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <regex.h>
-#include <yaml.h>
 #include <dlfcn.h>
 
 // [CONNECTOR-NAME]://(!)[CONNECTOR-COMMAND]
@@ -146,6 +145,81 @@ int count_connectors(FILE *file) {
     return counts;
 }
 
+sds **parse_yaml_entry(int *index, sds *lines, int *type, int *entry_count) {
+    if (lines[*index][0] != ' ') {
+        // name entry
+        sds **kv = zmalloc(sizeof(sds *) * 1);
+
+        kv[0] = zmalloc(sizeof(sds) * 2);
+
+        kv[0][0] = zmalloc(sizeof(sds) * (strlen(lines[*index]) + 1));
+        kv[0][1] = NULL;
+
+        strcpy(kv[0][0], sdstrim(lines[*index], ":\n"));
+
+        *type = 0;
+        *entry_count = 1;
+
+        return kv;
+    } else {
+        int split_len = -1;
+
+        lines[*index] = sdstrim(lines[*index], "\t\r\n");
+
+        sds **kv = zmalloc(sizeof(sds *) * 1);
+
+        kv[0] = sdssplitlen(lines[*index], strlen(lines[*index]), ":", 1, &split_len);
+
+        kv[0][0] = sdstrim(kv[0][0], "\t\r\n");
+        kv[0][1] = sdstrim(kv[0][1], "\t\r\n");
+
+        printf("KV = %s, %s\n", kv[0][0], kv[0][1]);
+
+        if (!strcasecmp(kv[0][0], "  type")) {
+            // type entry
+            kv[0][0] = sdstrim(kv[0][0], " ");
+            kv[0][1] = sdstrim(kv[0][1], " ");
+
+            *type = 1;
+
+            return kv;
+        } else if (!strcasecmp(kv[0][0], "  env")) {
+            // env entry
+            sds **env_kv = zmalloc(sizeof(sds *) * 10);
+
+            int env_entry_index = -1;
+
+            while (1) {
+                (*index)++;
+                env_entry_index++;
+
+                lines[*index] = sdstrim(lines[*index], "\t\r\n");
+
+                env_kv[env_entry_index] = sdssplitlen(lines[*index], strlen(lines[*index]), ": ", 2, &split_len);
+
+                if (!strncmp(env_kv[env_entry_index][0], "    ", 4)) {
+                    env_kv[env_entry_index][0] = sdstrim(env_kv[env_entry_index][0], " ");
+                    env_kv[env_entry_index][1] = sdstrim(env_kv[env_entry_index][1], " ");
+                } else {
+                    (*index)--;
+
+                    break;
+                }
+            }
+
+            *entry_count = env_entry_index + 1;
+            *type = 3;
+
+            return env_kv;
+        } else {
+            // common entry
+            return NULL;
+        }
+    }
+
+    return NULL;
+}
+
 int parse_hedis_config(const char * filename) {
     sds all_config = sdsempty();
     char buf[REDIS_CONFIGLINE_MAX + 1];
@@ -176,224 +250,86 @@ int parse_hedis_config(const char * filename) {
 
     int line_count = -1;
     int connector_index = -1;
+    int env_entry_index = -1;
     sds *lines = sdssplitlen(all_config, strlen(all_config), "\n", 1, &line_count);
 
     hedisConnector *connector;
 
-    for (int i = 0; i < line_count; i++) {
-        if (lines[i][0] != ' ') {
-            connector_index++;
+    int i = 0;
 
-            hedis_connector_list.connectors[connector_index] = zmalloc(sizeof(hedisConnector));
+    while (i <= line_count) {
+        int type = -1;
+        int entry_count = -1;
 
-            connector = hedis_connector_list.connectors[connector_index];
+        sds **kv = parse_yaml_entry(&i, lines, &type, &entry_count);
 
-            connector->name = zmalloc(sizeof(char) * (strlen(lines[i]) + 1));
-            connector->entries = zmalloc(sizeof(hedisConfigEntry) * 10);
-            connector->env_entries = zmalloc(sizeof(hedisConfigEntry) * 10);
+        // if (kv == NULL) {
+        //     redisLog(REDIS_WARNING, "Parse error, can't parse '%s'", lines[i]);
 
-            strcpy(connector->name, sdstrim(lines[i], ":\n"));
+        //     exit(1);
+        // }
 
-            printf("CONNECTOR = %s\n", connector->name);
-        } else {
-            int entry_count = -1;
+        printf("entry_count = %d\n", entry_count);
 
-            lines[i] = sdstrim(lines[i], " \t\r\n");
-
-            sds *kv = sdssplitlen(lines[i], strlen(lines[i]), ":", 1, &entry_count);
-
-            kv[0] = sdstrim(kv[0], " \t\r\n");
-            kv[1] = sdstrim(kv[1], " \t\r\n");
-
-            printf("KV = %s, %s\n", kv[0], kv[1]);
-
-            if (strcasecmp(kv[0], "env")) {
-                // It is not env entry
-                if (!strcasecmp(kv[0], "type")) {
-                    // It is type entry
-                    connector->type = zmalloc(sizeof(char) * (strlen(kv[1]) + 1));
-
-                    strcpy(connector->type, kv[1]);
-
-                    printf("TYPE = %s\n", connector->type);
-                } else {
-                    // It is common entry
-                    hedisConfigEntry *entry = zmalloc(sizeof(hedisConfigEntry));
-
-                    entry->key = zmalloc(sizeof(char) * (strlen(kv[0]) + 1));
-                    entry->value = zmalloc(sizeof(char) * (strlen(kv[1]) + 1));
-
-                    strcpy(entry->key, kv[0]);
-                    strcpy(entry->value, kv[1]);
-
-                    printf("KEY = '%s', VALUE = '%s'\n", entry->key, entry->value);
-                }
-            } else {
-                printf("ENV\n");
-            }
+        for (int j = 0; j < entry_count; j++) {
+            printf("k = %s\n", kv[j][0]);
+            printf("v = %s\n", kv[j][1]);
         }
+
+        printf("type = %d\n", type);
+
+        switch (type) {
+            // name
+            case 0:
+                connector_index++;
+
+                hedis_connector_list.connectors[connector_index] = zmalloc(sizeof(hedisConnector));
+
+                connector = hedis_connector_list.connectors[connector_index];
+
+                connector->name = zmalloc(sizeof(char) * (strlen(kv[0][0]) + 1));
+                connector->entries = zmalloc(sizeof(hedisConfigEntry) * 10);
+
+                strcpy(connector->name, kv[0][0]);
+
+                printf("NAME = %s\n", connector->name);
+
+                break;
+            // type
+            case 1:
+                connector->type = zmalloc(sizeof(char) * (strlen(kv[0][1]) + 1));
+
+                strcpy(connector->type, kv[0][1]);
+
+                printf("TYPE = %s\n", connector->type);
+
+                break;
+            // common entry
+            case 2:
+                break;
+            // env entry
+            case 3:
+                connector->env_entries = zmalloc(sizeof(hedisConfigEntry) * entry_count);
+
+                for (int j = 0; j < entry_count; j++) {
+                    connector->env_entries[j]->key = zmalloc(sizeof(char) * (strlen(kv[j][0]) + 1));
+                    connector->env_entries[j]->value = zmalloc(sizeof(char) * (strlen(kv[j][1]) + 1));
+
+                    strcpy(connector->env_entries[j]->key, kv[j][0]);
+                    strcpy(connector->env_entries[j]->value, kv[j][1]);
+
+                    printf("env_k = %s\n", connector->env_entries[j]->key);
+                    printf("env_v = %s\n", connector->env_entries[j]->value);
+                }
+
+                break;
+        }
+
+        i++;
     }
 
     return 0;
 }
-
-// int parse_hedis_config(const char * filename) {
-//     FILE *file = fopen(filename, "r");
-
-//     if (!file) {
-//         redisLog(REDIS_WARNING, "Load Hedis configuration error");
-
-//         return -1;
-//     }
-
-//     yaml_parser_t parser;
-//     yaml_token_t token;
-
-//     size_t connector_count = count_connectors(file);
-
-//     hedis_connector_list.connector_count = connector_count;
-//     hedis_connector_list.connectors = malloc(sizeof(hedisConnector *) * connector_count);
-
-//     for (size_t i = 0; i < connector_count; i++) {
-//         hedis_connector_list.connectors[i] = malloc(sizeof(hedisConnector));
-
-//         hedis_connector_list.connectors[i]->entries = malloc(sizeof(hedisConfigEntry) * 10);
-//         hedis_connector_list.connectors[i]->env_entries = malloc(sizeof(hedisConfigEntry) * 10);
-//     }
-
-//     if (!yaml_parser_initialize(&parser)) {
-//         fputs("Failed to initialize parser!\n", stderr);
-//     }
-
-//     yaml_parser_set_input_file(&parser, file);
-
-//     yaml_token_type_t token_type = YAML_NO_TOKEN;
-//     int connector_index = -1;
-//     int entry_index = -1;
-//     int env_entry_index = -1;
-//     int env_type = -1;
-//     hedisConfigEntry *entry = NULL;
-
-//     do {
-//         yaml_parser_scan(&parser, &token);
-
-//         yaml_char_t *value;
-//         size_t value_len;
-
-//         switch (token.type) {
-//         /* Stream start/end */
-//         case YAML_STREAM_START_TOKEN:
-//             // puts("STREAM START");
-
-//             break;
-//         case YAML_STREAM_END_TOKEN:
-//             // puts("STREAM END");
-
-//             break;
-//         /* Token types (read before actual token) */
-//         case YAML_KEY_TOKEN:
-//             // printf("(Key token)   ");
-
-//             if (parser.indent != 0) {
-//                 entry = malloc(sizeof(hedisConfigEntry));
-
-//                 token_type = YAML_KEY_TOKEN;
-//             }
-
-//             break;
-//         case YAML_VALUE_TOKEN:
-//             // printf("(Value token) ");
-
-//             token_type = YAML_VALUE_TOKEN;
-
-//             break;
-//         /* Block delimeters */
-//         case YAML_BLOCK_SEQUENCE_START_TOKEN:
-//             // puts("<b>Start Block (Sequence)</b>");
-
-//             break;
-//         case YAML_BLOCK_ENTRY_TOKEN:
-//             // puts("<b>Start Block (Entry)</b>");
-
-//             break;
-//         case YAML_BLOCK_END_TOKEN:
-//             // puts("<b>End block</b>");
-
-//             break;
-//         /* Data */
-//         case YAML_BLOCK_MAPPING_START_TOKEN:
-//             // puts("[Block mapping]");
-
-//             break;
-//         case YAML_SCALAR_TOKEN:
-//             value = token.data.scalar.value;
-//             value_len = token.data.scalar.length;
-
-//             if (parser.indent == 0) {
-//                 connector_index++;
-
-//                 entry_index = -1;
-//                 env_entry_index = -1;
-//                 env_type = -1;
-
-//                 hedis_connector_list.connectors[connector_index]->name = malloc(sizeof(char) * (value_len + 1));
-
-//                 strcpy(hedis_connector_list.connectors[connector_index]->name, (const char *)value);
-//             } else {
-//                 if (token_type == YAML_KEY_TOKEN) {
-//                     if (strcasecmp((const char *)value, "env") || env_type == 1) {
-//                         entry->key = malloc(sizeof(char) * (value_len + 1));
-
-//                         strcpy(entry->key, (const char *)value);
-//                     } else {
-//                         env_type = 1;
-//                     }
-//                 } else if (token_type == YAML_VALUE_TOKEN) {
-//                     if (!strcasecmp(entry->key, "type")) {
-//                         hedis_connector_list.connectors[connector_index]->type = malloc(sizeof(char) * (value_len + 1));
-
-//                         strcpy(hedis_connector_list.connectors[connector_index]->type, (const char *)value);
-//                     }
-
-//                     entry->value = malloc(sizeof(char) * (value_len + 1));
-
-//                     strcpy(entry->value, (const char *)value);
-
-//                     if (env_type == 1) {
-//                         env_entry_index++;
-
-//                         hedis_connector_list.connectors[connector_index]->env_entries[env_entry_index] = entry;
-//                         hedis_connector_list.connectors[connector_index]->env_entry_count = env_entry_index + 1;
-//                     } else {
-//                         entry_index++;
-
-//                         hedis_connector_list.connectors[connector_index]->entries[entry_index] = entry;
-//                         hedis_connector_list.connectors[connector_index]->entry_count = entry_index + 1;
-//                     }
-//                 }
-//             }
-
-//             break;
-//         /* Others */
-//         default:
-//             printf("Got token of type %d\n", token.type);
-//         }
-
-//         if (token.type != YAML_STREAM_END_TOKEN) {
-//             yaml_token_delete(&token);
-//         }
-//     } while (token.type != YAML_STREAM_END_TOKEN);
-
-//     yaml_token_delete(&token);
-//     /* END new code */
-
-//     /* Cleanup */
-//     yaml_parser_delete(&parser);
-
-//     fclose(file);
-
-//     return 0;
-// }
 
 hedisProtocol *parse_hedis_protocol(const char * to_match) {
     regex_t * r = malloc(sizeof(regex_t));

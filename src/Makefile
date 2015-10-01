@@ -75,7 +75,7 @@ ifeq ($(uname_S),AIX)
 else
 	# All the other OSes (notably Linux)
 	FINAL_LDFLAGS+= -rdynamic
-	FINAL_LIBS+= -pthread -lyaml
+	FINAL_LIBS+= -pthread
 endif
 endif
 endif

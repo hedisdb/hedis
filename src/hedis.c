@@ -106,45 +106,6 @@ void load_hedis_connectors() {
     }
 }
 
-int count_connectors(FILE *file) {
-    yaml_parser_t parser;
-    yaml_token_t token;
-    int counts = 0;
-
-    /* Initialize parser */
-    if (!yaml_parser_initialize(&parser)) {
-        fputs("Failed to initialize parser!\n", stderr);
-    }
-
-    if (file == NULL) {
-        fputs("Failed to open file!\n", stderr);
-    }
-
-    /* Set input file */
-    yaml_parser_set_input_file(&parser, file);
-
-    /* BEGIN new code */
-    // calculate connector counts
-    do {
-        yaml_parser_scan(&parser, &token);
-
-        if (token.type == YAML_KEY_TOKEN && parser.indent == 0) {
-            counts++;
-        }
-
-        if (token.type != YAML_STREAM_END_TOKEN) {
-            yaml_token_delete(&token);
-        }
-    } while (token.type != YAML_STREAM_END_TOKEN);
-
-    /* Cleanup */
-    yaml_parser_delete(&parser);
-
-    fseek(file, 0, SEEK_SET);
-
-    return counts;
-}
-
 sds **parse_yaml_entry(int *index, sds *lines, int *type, int *entry_count) {
     if (lines[*index][0] != ' ') {
         // name entry
@@ -170,8 +131,25 @@ sds **parse_yaml_entry(int *index, sds *lines, int *type, int *entry_count) {
 
         kv[0] = sdssplitlen(lines[*index], strlen(lines[*index]), ":", 1, &split_len);
 
+        printf("lines = %s\n", lines[*index]);
+
+        sds join_str;
+
+        if (split_len > 2) {
+            join_str = sdscat(kv[0][1], ":");
+
+            for (int i = 2; i < split_len; i++) {
+                join_str = sdscat(join_str, kv[0][i]);
+                join_str = sdscat(join_str, ":");
+            }
+
+            join_str = sdstrim(join_str, ": \t\r\n");
+        } else {
+            join_str = sdstrim(kv[0][1], ": \t\r\n");
+        }
+
         kv[0][0] = sdstrim(kv[0][0], "\t\r\n");
-        kv[0][1] = sdstrim(kv[0][1], "\t\r\n");
+        kv[0][1] = join_str;
 
         printf("KV = %s, %s\n", kv[0][0], kv[0][1]);
 
@@ -197,11 +175,14 @@ sds **parse_yaml_entry(int *index, sds *lines, int *type, int *entry_count) {
 
                 env_kv[env_entry_index] = sdssplitlen(lines[*index], strlen(lines[*index]), ": ", 2, &split_len);
 
+                // printf("env_kv[env_entry_index][0] = %s\n", env_kv[env_entry_index][0]);
+
                 if (!strncmp(env_kv[env_entry_index][0], "    ", 4)) {
                     env_kv[env_entry_index][0] = sdstrim(env_kv[env_entry_index][0], " ");
                     env_kv[env_entry_index][1] = sdstrim(env_kv[env_entry_index][1], " ");
                 } else {
                     (*index)--;
+                    env_entry_index--;
 
                     break;
                 }
@@ -213,7 +194,43 @@ sds **parse_yaml_entry(int *index, sds *lines, int *type, int *entry_count) {
             return env_kv;
         } else {
             // common entry
-            return NULL;
+            printf("COMMONCOMMONCOMMONCOMMONCOMMON\n");
+            
+            sds **common_kv = zmalloc(sizeof(sds *) * 10);
+
+            int entry_index = -1;
+
+            while (1) {
+                (*index)++;
+                entry_index++;
+
+                lines[*index] = sdstrim(lines[*index], "\t\r\n");
+
+                if (!strcasecmp(lines[*index], "  env:")) {
+                    (*index)--;
+
+                    return NULL;
+                }
+
+                common_kv[entry_index] = sdssplitlen(lines[*index], strlen(lines[*index]), ":", 1, &split_len);
+
+                // printf("lines = %s, common = %s\n", lines[*index], common_kv[entry_index]);
+
+                if (!strncmp(common_kv[entry_index][0], "  ", 2)) {
+                    common_kv[entry_index][0] = sdstrim(common_kv[entry_index][0], " ");
+                    common_kv[entry_index][1] = sdstrim(common_kv[entry_index][1], " ");
+                } else {
+                    (*index)--;
+                    entry_index--;
+
+                    break;
+                }
+            }
+
+            *entry_count = entry_index + 1;
+            *type = 2;
+
+            return common_kv;
         }
     }
 
@@ -269,14 +286,12 @@ int parse_hedis_config(const char * filename) {
         //     exit(1);
         // }
 
-        printf("entry_count = %d\n", entry_count);
+        printf("type = %d, entry_count = %d\n", type, entry_count);
 
         for (int j = 0; j < entry_count; j++) {
             printf("k = %s\n", kv[j][0]);
             printf("v = %s\n", kv[j][1]);
         }
-
-        printf("type = %d\n", type);
 
         switch (type) {
             // name
@@ -292,7 +307,7 @@ int parse_hedis_config(const char * filename) {
 
                 strcpy(connector->name, kv[0][0]);
 
-                printf("NAME = %s\n", connector->name);
+                // printf("NAME = %s\n", connector->name);
 
                 break;
             // type
@@ -301,25 +316,40 @@ int parse_hedis_config(const char * filename) {
 
                 strcpy(connector->type, kv[0][1]);
 
-                printf("TYPE = %s\n", connector->type);
+                // printf("TYPE = %s\n", connector->type);
 
                 break;
             // common entry
             case 2:
+                connector->entries = zmalloc(sizeof(hedisConfigEntry *) * entry_count);
+
+                for (int j = 0; j < entry_count; j++) {
+                    connector->entries[j] = zmalloc(sizeof(hedisConfigEntry));
+                    connector->entries[j]->key = zmalloc(sizeof(char) * (strlen(kv[j][0]) + 1));
+                    connector->entries[j]->value = zmalloc(sizeof(char) * (strlen(kv[j][1]) + 1));
+
+                    strcpy(connector->entries[j]->key, kv[j][0]);
+                    strcpy(connector->entries[j]->value, kv[j][1]);
+
+                    // printf("common_k = %s\n", connector->entries[j]->key);
+                    // printf("common_v = %s\n", connector->entries[j]->value);
+                }
+
                 break;
             // env entry
             case 3:
-                connector->env_entries = zmalloc(sizeof(hedisConfigEntry) * entry_count);
+                connector->env_entries = zmalloc(sizeof(hedisConfigEntry *) * entry_count);
 
                 for (int j = 0; j < entry_count; j++) {
+                    connector->env_entries[j] = zmalloc(sizeof(hedisConfigEntry));
                     connector->env_entries[j]->key = zmalloc(sizeof(char) * (strlen(kv[j][0]) + 1));
                     connector->env_entries[j]->value = zmalloc(sizeof(char) * (strlen(kv[j][1]) + 1));
 
                     strcpy(connector->env_entries[j]->key, kv[j][0]);
                     strcpy(connector->env_entries[j]->value, kv[j][1]);
 
-                    printf("env_k = %s\n", connector->env_entries[j]->key);
-                    printf("env_v = %s\n", connector->env_entries[j]->value);
+                    // printf("env_k = %s\n", connector->env_entries[j]->key);
+                    // printf("env_v = %s\n", connector->env_entries[j]->value);
                 }
 
                 break;

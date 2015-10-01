@@ -306,7 +306,6 @@ int parse_hedis_config(const char * filename) {
                 connector = hedis_connector_list.connectors[connector_index];
 
                 connector->name = zmalloc(sizeof(char) * (strlen(kv[0][0]) + 1));
-                connector->entries = zmalloc(sizeof(hedisConfigEntry) * 10);
 
                 strcpy(connector->name, kv[0][0]);
 

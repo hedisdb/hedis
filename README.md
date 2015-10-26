@@ -94,4 +94,4 @@ TODO
 
 ## Related with Redis
 
-This is a modified version of [Redis](https://github.com/antirez/redis), maintaining by [Kewang](https://github.com/kewangtw) now.
+This is a modified version of [Redis](https://github.com/antirez/redis), maintaining by [Kewang](https://github.com/kewang) now.

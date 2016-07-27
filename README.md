@@ -55,6 +55,18 @@ otherdb:
 * [hedis-connector-hbase](https://github.com/hedisdb/hedis-connector-hbase)
 * [hedis-connector-mysql](https://github.com/hedisdb/hedis-connector-mysql)
 
+## How to make
+
+Before you make the hedis, please clean the dependencies first in order to rebuild dependencies. "make" does not rebuild dependencies automatically, even if something in the
+source code of dependencies is changes.
+```sh
+make distclean
+```
+After clean the dependencies, build the hedis using "make" command.
+```sh
+make
+```
+
 ## How to run
 
 ```sh
